@@ -17,3 +17,6 @@ local.properties
 /app/release
 *.apk
 *.aab
+
+# Feuille de route locale, non versionnée
+/TODO_V1.md
