@@ -20,3 +20,7 @@ local.properties
 
 # Feuille de route locale, non versionnée
 /TODO_V1.md
+
+# Keystore de signature et ses secrets — NE JAMAIS COMMITER
+/keystore/
+/keystore.properties

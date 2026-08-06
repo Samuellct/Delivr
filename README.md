@@ -50,3 +50,11 @@ app/src/main/java/com/delivr/app/
 
 Une seule branche (`main`), commits atomiques, une fonctionnalité = un
 commit. Versionning sémantique lisible (`0.1.0`, `0.2.0`, ... `1.0.0`).
+
+## Signature (release)
+
+Le keystore de release (`keystore/delivr-release.jks`) et ses identifiants
+(`keystore.properties`) sont gitignorés — ce sont des secrets, jamais
+commités. `app/build.gradle.kts` les charge automatiquement s'ils sont
+présents ; sans eux, seul le build debug fonctionne. En cas de nouveau poste
+de travail, copier ces deux éléments manuellement (jamais par Git).
