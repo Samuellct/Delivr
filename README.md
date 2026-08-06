@@ -12,17 +12,20 @@ cottage par cottage.
 
 - Kotlin + Jetpack Compose
 - Architecture MVVM
-- CameraX (capture + correction de perspective)
+- Google ML Kit Document Scanner (capture, détection des bords, redressement
+  de perspective, amélioration du contraste — remplace CameraX, voir
+  `TODO_V1.md` § 1 pour le détail de cette décision)
 - Google ML Kit OCR (reconnaissance de texte, hors ligne)
 - Room (sauvegarde locale de la tournée en cours)
 
 ## État actuel — v0.1.0
 
-Squelette du projet : structure Gradle, thème Compose, navigation, et écran
-d'accueil fonctionnel (boutons "Nouvelle tournée" / "Reprendre la tournée en
-cours"). Le scan, l'OCR, la validation et le mode livraison seront ajoutés
-au fil des prochains commits (voir `app/src/main/java/com/delivr/app/`,
-dossiers `camera`, `ocr`, `data`, `domain`, `repository`, `database`).
+Structure Gradle, thème Compose, navigation, écran d'accueil fonctionnel, et
+écran de scan opérationnel (déclenchement automatique du scanner ML Kit,
+aperçu du document redressé, gestion des cas d'annulation/erreur). L'OCR, la
+validation et le mode livraison seront ajoutés au fil des prochains commits
+(voir `app/src/main/java/com/delivr/app/`, dossiers `ocr`, `data`, `domain`,
+`repository`, `database`).
 
 ## Ouvrir le projet
 
@@ -39,11 +42,11 @@ app/src/main/java/com/delivr/app/
  ├── navigation/     graphe de navigation
  ├── data/           sources de données (à venir)
  ├── domain/         logique métier (tri, extraction, à venir)
- ├── camera/         capture CameraX (à venir)
- ├── ocr/            intégration ML Kit (à venir)
+ ├── camera/         lancement du scanner ML Kit (DocumentScanner.kt)
+ ├── ocr/            intégration ML Kit Text Recognition (à venir)
  ├── repository/     repositories (à venir)
  ├── database/       Room (à venir)
- └── utils/          utilitaires (à venir)
+ └── utils/          utilitaires (chargement d'image, BitmapLoader.kt)
 ```
 
 ## Workflow Git
