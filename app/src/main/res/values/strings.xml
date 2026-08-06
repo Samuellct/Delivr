@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Delivr</string>
+    <string name="home_nouvelle_tournee">Nouvelle tournée</string>
+    <string name="home_reprendre_tournee">Reprendre la tournée en cours</string>
+</resources>
