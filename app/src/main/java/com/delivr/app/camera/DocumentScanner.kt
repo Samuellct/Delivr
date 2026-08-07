@@ -1,6 +1,7 @@
 package com.delivr.app.camera
 
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.LocalActivity
@@ -10,11 +11,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalContext
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanner
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
+import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Résultat d'une tentative de scan de document.
@@ -27,7 +35,13 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
  * par l'écran de scan.
  */
 sealed interface ScanOutcome {
-    data class Success(val imageUri: Uri) : ScanOutcome
+    /**
+     * [imagePath] est un chemin de fichier dans le stockage privé de l'app
+     * (pas l'URI `content://` d'origine de ML Kit) : celle-ci n'a qu'une
+     * autorisation de lecture transitoire, non garantie après recréation du
+     * process. Voir [copyToInternalStorage].
+     */
+    data class Success(val imagePath: String) : ScanOutcome
     data object Cancelled : ScanOutcome
     data class Error(val error: ScanError) : ScanOutcome
 }
@@ -52,6 +66,22 @@ private fun buildScannerOptions(): GmsDocumentScannerOptions =
         .build()
 
 /**
+ * Copie l'image scannée depuis l'URI `content://` (temporaire, propriété de
+ * ML Kit) vers un fichier privé de l'app. Le fichier précédent est écrasé :
+ * une seule tournée à la fois est en cours, pas besoin d'historique ici.
+ * Retourne `null` en cas d'échec de copie (source illisible, disque plein...).
+ */
+private fun copyToInternalStorage(context: Context, sourceUri: Uri): String? = runCatching {
+    val internalFile = File(context.filesDir, "scans/current_scan.jpg")
+    internalFile.parentFile?.mkdirs()
+    val stream = context.contentResolver.openInputStream(sourceUri) ?: return null
+    stream.use { input ->
+        internalFile.outputStream().use { output -> input.copyTo(output) }
+    }
+    internalFile.absolutePath
+}.getOrNull()
+
+/**
  * Prépare le lancement du flux de scan ML Kit et retourne une fonction à
  * appeler pour le démarrer. [onResult] est notifié une fois le flux terminé
  * (succès, annulation ou erreur).
@@ -59,6 +89,8 @@ private fun buildScannerOptions(): GmsDocumentScannerOptions =
 @Composable
 fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit {
     val activity = LocalActivity.current
+    val context = LocalContext.current
+    val coroutineScope: CoroutineScope = rememberCoroutineScope()
     val currentOnResult by rememberUpdatedState(onResult)
 
     val launcher = rememberLauncherForActivityResult(
@@ -74,7 +106,18 @@ fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit
             }.getOrNull()
 
             if (imageUri != null) {
-                currentOnResult(ScanOutcome.Success(imageUri))
+                // Copie hors du thread principal : lecture/écriture disque pour
+                // une image A4 pleine résolution, pas une opération instantanée.
+                coroutineScope.launch {
+                    val imagePath = withContext(Dispatchers.IO) {
+                        copyToInternalStorage(context, imageUri)
+                    }
+                    if (imagePath != null) {
+                        currentOnResult(ScanOutcome.Success(imagePath))
+                    } else {
+                        currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
+                    }
+                }
             } else {
                 currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
             }

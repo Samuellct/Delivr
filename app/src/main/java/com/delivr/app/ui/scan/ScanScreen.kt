@@ -2,6 +2,7 @@ package com.delivr.app.ui.scan
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import java.io.File
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +59,7 @@ fun ScanScreen(
             ScanUiState.Idle, ScanUiState.Scanning -> ScanLoading()
 
             is ScanUiState.Success -> ScanSuccess(
-                imageUri = state.imageUri,
+                imagePath = state.imagePath,
                 onRescan = {
                     viewModel.onScanStarted()
                     startScan()
@@ -120,12 +121,17 @@ private fun ScanLoading(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ScanSuccess(
-    imageUri: Uri,
+    imagePath: String,
     onRescan: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bitmap = rememberBitmapFromUri(imageUri)
+    // TODO(1.9): remplacer par un chargement direct depuis le fichier, avec
+    // sous-échantillonnage et correction de l'orientation EXIF (voir
+    // TODO_V1.md, étape 1.9). rememberBitmapFromUri décode l'image en pleine
+    // résolution sans lire l'orientation, ce qui sera corrigé dans cette
+    // étape suivante.
+    val bitmap = rememberBitmapFromUri(Uri.fromFile(File(imagePath)))
 
     Column(
         modifier = modifier
