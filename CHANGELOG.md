@@ -1,4 +1,15 @@
 
+## [v0.1.0] - 2026-08-07
+## [0.1.0](https://github.com/Samuellct/Delivr/compare/v0.0.2...v0.1.0) (2026-08-07)
+
+
+### Features
+
+* ajoute la fixture synthétique de feuille de livraison (Phase 2.2) ([3eb54f6](https://github.com/Samuellct/Delivr/commit/3eb54f6b8174e2963cf5859c17cffaf51b692fdf))
+* sonde ML Kit Text Recognition sur les échantillons (Phase 2.3) ([b419bb0](https://github.com/Samuellct/Delivr/commit/b419bb05511afab0e2ab1415fe08137fd7d1b790))
+
+
+
 ## [v0.0.2] - 2026-08-07
 ### [0.0.2](https://github.com/Samuellct/Delivr/compare/v0.0.1...v0.0.2) (2026-08-07)
 
