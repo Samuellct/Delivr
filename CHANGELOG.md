@@ -1,4 +1,30 @@
 
+## [v0.0.2] - 2026-08-07
+### [0.0.2](https://github.com/Samuellct/Delivr/compare/v0.0.1...v0.0.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* applique les insets système (safeDrawingPadding) au niveau racine ([176914f](https://github.com/Samuellct/Delivr/commit/176914f2162f361cc213df561a2fffff33170205))
+* désactive le dynamic color et corrige le flash blanc au démarrage ([ab13cc5](https://github.com/Samuellct/Delivr/commit/ab13cc5d218f1aa0ad26f6bf138e09b16176eac5))
+* durabilité du scan (copie interne + SavedStateHandle) ([d67ff33](https://github.com/Samuellct/Delivr/commit/d67ff33f28ccb2527c349dcf920753b810add6a0))
+* le scan ne relance plus la caméra après rotation ([3e4d4d1](https://github.com/Samuellct/Delivr/commit/3e4d4d10ceb99aed0d02303eb70a114e66679b52))
+* sous-échantillonnage et orientation EXIF dans BitmapLoader ([88e3cb0](https://github.com/Samuellct/Delivr/commit/88e3cb09b75cd33a9a2ce8f9a07cd3360be198f7))
+* supprime HomeViewModel, jamais instancié ([2932be0](https://github.com/Samuellct/Delivr/commit/2932be0cfe5e2872b63845c4d5fbdac054c68e4a))
+
+
+### Tests
+
+* ajoute les premiers tests réels et active ktlint ([4a6445d](https://github.com/Samuellct/Delivr/commit/4a6445dad351fa0ecce34cdee5a254f715ccfe41))
+
+
+### Code Refactoring
+
+* abstraction testable du lanceur de scanner ([cd411fb](https://github.com/Samuellct/Delivr/commit/cd411fb9a525dfcf25f71085a61e7abd93724b6e))
+* erreurs de scan typées et externalisation des textes ([aaf03e2](https://github.com/Samuellct/Delivr/commit/aaf03e206a57e77ea55f0d1380fca69e61d652c1))
+
+
+
 ## [v0.0.1] - 2026-08-07
 ### [0.0.1](https://github.com/Samuellct/Delivr/compare/v0.0.0...v0.0.1) (2026-08-07)
 
