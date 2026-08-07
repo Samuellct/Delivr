@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.delivr.app.navigation.DelivrNavGraph
@@ -20,7 +21,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DelivrTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                // safeDrawingPadding() appliqué une seule fois ici : enableEdgeToEdge()
+                // dessine sous les barres système, donc sans ça le contenu des écrans
+                // (ex. ScanSuccess) peut passer sous la barre de statut ou de
+                // navigation. Poser le padding au niveau racine évite de le répéter
+                // dans chaque écran.
+                Surface(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
                     DelivrNavGraph()
                 }
             }
