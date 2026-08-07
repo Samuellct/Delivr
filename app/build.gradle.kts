@@ -120,6 +120,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.mlkit.document.scanner)
+    implementation(libs.mlkit.text.recognition)
     implementation(libs.androidx.exifinterface)
 
     testImplementation(libs.junit)
