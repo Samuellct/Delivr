@@ -1,8 +1,6 @@
 package com.delivr.app.ui.scan
 
-import android.net.Uri
 import androidx.compose.foundation.Image
-import java.io.File
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.delivr.app.R
 import com.delivr.app.camera.ScanError
 import com.delivr.app.camera.rememberDocumentScannerLauncher
-import com.delivr.app.utils.rememberBitmapFromUri
+import com.delivr.app.utils.ImageLoadState
+import com.delivr.app.utils.rememberBitmapFromFile
 
 /**
  * Écran de scan : capture de la feuille de livraison via le scanner de
@@ -126,12 +125,7 @@ private fun ScanSuccess(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // TODO(1.9): remplacer par un chargement direct depuis le fichier, avec
-    // sous-échantillonnage et correction de l'orientation EXIF (voir
-    // TODO_V1.md, étape 1.9). rememberBitmapFromUri décode l'image en pleine
-    // résolution sans lire l'orientation, ce qui sera corrigé dans cette
-    // étape suivante.
-    val bitmap = rememberBitmapFromUri(Uri.fromFile(File(imagePath)))
+    val imageState = rememberBitmapFromFile(imagePath)
 
     Column(
         modifier = modifier
@@ -147,14 +141,14 @@ private fun ScanSuccess(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            if (bitmap != null) {
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
+            when (imageState) {
+                is ImageLoadState.Loaded -> Image(
+                    bitmap = imageState.bitmap.asImageBitmap(),
                     contentDescription = stringResource(R.string.scan_success_image_description),
                     modifier = Modifier.fillMaxSize()
                 )
-            } else {
-                CircularProgressIndicator()
+                ImageLoadState.Loading -> CircularProgressIndicator()
+                ImageLoadState.Failed -> Text(stringResource(R.string.scan_image_load_failed))
             }
         }
 
