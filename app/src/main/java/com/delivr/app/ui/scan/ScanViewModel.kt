@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.delivr.app.camera.ScanError
 import com.delivr.app.camera.ScanOutcome
 
 /**
@@ -15,7 +16,7 @@ sealed interface ScanUiState {
     data object Scanning : ScanUiState
     data class Success(val imageUri: Uri) : ScanUiState
     data object Cancelled : ScanUiState
-    data class Error(val message: String) : ScanUiState
+    data class Error(val error: ScanError) : ScanUiState
 }
 
 /**
@@ -34,7 +35,7 @@ class ScanViewModel : ViewModel() {
         uiState = when (outcome) {
             is ScanOutcome.Success -> ScanUiState.Success(outcome.imageUri)
             is ScanOutcome.Cancelled -> ScanUiState.Cancelled
-            is ScanOutcome.Error -> ScanUiState.Error(outcome.message)
+            is ScanOutcome.Error -> ScanUiState.Error(outcome.error)
         }
     }
 }

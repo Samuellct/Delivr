@@ -2,6 +2,7 @@ package com.delivr.app.camera
 
 import android.app.Activity.RESULT_OK
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -28,8 +29,10 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 sealed interface ScanOutcome {
     data class Success(val imageUri: Uri) : ScanOutcome
     data object Cancelled : ScanOutcome
-    data class Error(val message: String) : ScanOutcome
+    data class Error(val error: ScanError) : ScanOutcome
 }
+
+private const val TAG = "DocumentScanner"
 
 /**
  * Options du scanner : une seule page (une feuille de livraison = un scan),
@@ -73,12 +76,12 @@ fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit
             if (imageUri != null) {
                 currentOnResult(ScanOutcome.Success(imageUri))
             } else {
-                currentOnResult(ScanOutcome.Error("Le scanner n'a retourné aucune image."))
+                currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
             }
         } else if (activityResult.resultCode == RESULT_OK) {
             // RESULT_OK mais pas de données exploitables : on le traite comme une erreur
             // plutôt qu'une annulation silencieuse, pour ne pas masquer un vrai problème.
-            currentOnResult(ScanOutcome.Error("Le scanner n'a retourné aucune donnée."))
+            currentOnResult(ScanOutcome.Error(ScanError.NoDataReturned))
         } else {
             currentOnResult(ScanOutcome.Cancelled)
         }
@@ -87,7 +90,7 @@ fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit
     return remember(activity, launcher) {
         {
             if (activity == null) {
-                currentOnResult(ScanOutcome.Error("Impossible de démarrer le scanner (contexte invalide)."))
+                currentOnResult(ScanOutcome.Error(ScanError.InvalidContext))
             } else {
                 val scanner: GmsDocumentScanner = GmsDocumentScanning.getClient(buildScannerOptions())
                 scanner.getStartScanIntent(activity)
@@ -95,10 +98,12 @@ fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit
                         launcher.launch(IntentSenderRequest.Builder(intentSender).build())
                     }
                     .addOnFailureListener { exception ->
+                        // Le message brut de l'exception ML Kit est loggé pour le
+                        // diagnostic, mais jamais affiché tel quel à l'utilisateur
+                        // (voir ScanError.LaunchFailed et son résolveur dans ScanScreen.kt).
+                        Log.w(TAG, "Échec du démarrage du scanner", exception)
                         currentOnResult(
-                            ScanOutcome.Error(
-                                exception.message ?: "Échec du démarrage du scanner."
-                            )
+                            ScanOutcome.Error(ScanError.LaunchFailed(exception.message))
                         )
                     }
             }

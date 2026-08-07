@@ -21,8 +21,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.delivr.app.R
+import com.delivr.app.camera.ScanError
 import com.delivr.app.camera.rememberDocumentScannerLauncher
 import com.delivr.app.utils.rememberBitmapFromUri
 
@@ -64,8 +67,8 @@ fun ScanScreen(
             )
 
             ScanUiState.Cancelled -> ScanMessage(
-                title = "Scan annulé",
-                message = "Tu peux relancer le scan ou revenir à l'accueil.",
+                title = stringResource(R.string.scan_cancelled_title),
+                message = stringResource(R.string.scan_cancelled_message),
                 onRetry = {
                     viewModel.onScanStarted()
                     startScan()
@@ -74,8 +77,8 @@ fun ScanScreen(
             )
 
             is ScanUiState.Error -> ScanMessage(
-                title = "Échec du scan",
-                message = state.message,
+                title = stringResource(R.string.scan_error_title),
+                message = state.error.toDisplayMessage(),
                 onRetry = {
                     viewModel.onScanStarted()
                     startScan()
@@ -84,6 +87,22 @@ fun ScanScreen(
             )
         }
     }
+}
+
+/**
+ * Message localisé associé à une [ScanError]. Résolu ici (dans un
+ * composable, via [stringResource]) plutôt que dans [ScanError] lui-même,
+ * qui reste un type Kotlin pur sans dépendance Android — voir son KDoc.
+ * [ScanError.LaunchFailed.technicalMessage] n'est volontairement pas
+ * affiché : il n'est utile qu'au diagnostic (déjà loggé côté
+ * `DocumentScanner.kt`).
+ */
+@Composable
+private fun ScanError.toDisplayMessage(): String = when (this) {
+    ScanError.NoImageReturned -> stringResource(R.string.scan_error_no_image)
+    ScanError.NoDataReturned -> stringResource(R.string.scan_error_no_data)
+    ScanError.InvalidContext -> stringResource(R.string.scan_error_invalid_context)
+    is ScanError.LaunchFailed -> stringResource(R.string.scan_error_launch_failed)
 }
 
 @Composable
@@ -95,7 +114,7 @@ private fun ScanLoading(modifier: Modifier = Modifier) {
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(16.dp))
-        Text("Ouverture du scanner…")
+        Text(stringResource(R.string.scan_loading_message))
     }
 }
 
@@ -113,7 +132,7 @@ private fun ScanSuccess(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("Document scanné", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.scan_success_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
 
         Box(
@@ -125,7 +144,7 @@ private fun ScanSuccess(
             if (bitmap != null) {
                 Image(
                     bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Aperçu du document scanné",
+                    contentDescription = stringResource(R.string.scan_success_image_description),
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -141,7 +160,7 @@ private fun ScanSuccess(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text("Recommencer")
+            Text(stringResource(R.string.scan_rescan_button))
         }
 
         Spacer(Modifier.height(8.dp))
@@ -155,13 +174,13 @@ private fun ScanSuccess(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text("Continuer (extraction à venir)")
+            Text(stringResource(R.string.scan_continue_button))
         }
 
         Spacer(Modifier.height(8.dp))
 
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Retour à l'accueil")
+            Text(stringResource(R.string.action_back_to_home))
         }
     }
 }
@@ -191,11 +210,11 @@ private fun ScanMessage(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text("Scanner la feuille")
+            Text(stringResource(R.string.scan_retry_button))
         }
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onBack) {
-            Text("Retour à l'accueil")
+            Text(stringResource(R.string.action_back_to_home))
         }
     }
 }

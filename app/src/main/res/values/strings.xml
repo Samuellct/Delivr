@@ -2,4 +2,24 @@
     <string name="app_name">Delivr</string>
     <string name="home_nouvelle_tournee">Nouvelle tournée</string>
     <string name="home_reprendre_tournee">Reprendre la tournée en cours</string>
+
+    <string name="action_back_to_home">Retour à l\'accueil</string>
+
+    <string name="scan_loading_message">Ouverture du scanner…</string>
+
+    <string name="scan_success_title">Document scanné</string>
+    <string name="scan_success_image_description">Aperçu du document scanné</string>
+    <string name="scan_rescan_button">Recommencer</string>
+    <string name="scan_continue_button">Continuer (extraction à venir)</string>
+    <string name="scan_image_load_failed">Impossible d\'afficher l\'aperçu du document.</string>
+
+    <string name="scan_cancelled_title">Scan annulé</string>
+    <string name="scan_cancelled_message">Tu peux relancer le scan ou revenir à l\'accueil.</string>
+
+    <string name="scan_error_title">Échec du scan</string>
+    <string name="scan_retry_button">Scanner la feuille</string>
+    <string name="scan_error_no_image">Le scanner n\'a retourné aucune image.</string>
+    <string name="scan_error_no_data">Le scanner n\'a retourné aucune donnée.</string>
+    <string name="scan_error_invalid_context">Impossible de démarrer le scanner (contexte invalide).</string>
+    <string name="scan_error_launch_failed">Échec du démarrage du scanner.</string>
 </resources>
