@@ -30,10 +30,29 @@ import com.delivr.app.utils.ImageLoadState
 import com.delivr.app.utils.rememberBitmapFromFile
 
 /**
+ * Point d'entrée de la destination de navigation "scan" : c'est ici, et pas
+ * dans [ScanScreen], qu'est instancié le lanceur ML Kit
+ * ([rememberDocumentScannerLauncher]). Séparer les deux rend [ScanScreen]
+ * indépendant du SDK/de Play services — testable et prévisualisable en lui
+ * passant un `startScan` factice (voir `ScanScreenTest.kt`).
+ */
+@Composable
+fun ScanRoute(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ScanViewModel = viewModel()
+) {
+    val startScan = rememberDocumentScannerLauncher(onResult = viewModel::onScanOutcome)
+    ScanScreen(onBack = onBack, startScan = startScan, modifier = modifier, viewModel = viewModel)
+}
+
+/**
  * Écran de scan : capture de la feuille de livraison via le scanner de
  * documents ML Kit (détection des bords, redressement de perspective et
- * amélioration du contraste sont gérés par le SDK, voir
- * [com.delivr.app.camera.rememberDocumentScannerLauncher]).
+ * amélioration du contraste sont gérés par le SDK — orchestré par
+ * [rememberDocumentScannerLauncher], appelé par [ScanRoute]). Ce composable
+ * ne connaît que [startScan], une fonction opaque : aucune dépendance
+ * directe à ML Kit ou Play services, donc testable/prévisualisable sans eux.
  *
  * Le scan démarre automatiquement à l'arrivée sur l'écran pour limiter les
  * manipulations ; l'utilisateur peut relancer manuellement en cas
@@ -42,11 +61,11 @@ import com.delivr.app.utils.rememberBitmapFromFile
 @Composable
 fun ScanScreen(
     onBack: () -> Unit,
+    startScan: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ScanViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
-    val startScan = rememberDocumentScannerLauncher(onResult = viewModel::onScanOutcome)
     val restart: () -> Unit = {
         viewModel.onScanStarted()
         startScan()

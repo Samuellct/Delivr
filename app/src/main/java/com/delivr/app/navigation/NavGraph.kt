@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.delivr.app.ui.home.HomeScreen
-import com.delivr.app.ui.scan.ScanScreen
+import com.delivr.app.ui.scan.ScanRoute
 
 /**
  * Graphe de navigation principal. Les écrans de scan, validation et livraison
@@ -25,7 +25,7 @@ fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
             )
         }
         composable(Routes.SCAN) {
-            ScanScreen(onBack = { navController.popBackStack() })
+            ScanRoute(onBack = { navController.popBackStack() })
         }
     }
 }
