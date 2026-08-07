@@ -47,10 +47,21 @@ fun ScanScreen(
 ) {
     val uiState = viewModel.uiState
     val startScan = rememberDocumentScannerLauncher(onResult = viewModel::onScanOutcome)
-
-    LaunchedEffect(Unit) {
+    val restart: () -> Unit = {
         viewModel.onScanStarted()
         startScan()
+    }
+
+    LaunchedEffect(Unit) {
+        // Conditionné à Idle : après une rotation (ou une recréation de
+        // process, voir ScanViewModel), uiState vaut déjà Success/Cancelled/
+        // Error — jamais Idle — donc cet effet ne relance pas la caméra et ne
+        // détruit pas un scan déjà terminé. Sans ce garde-fou, toute
+        // recomposition initiale (rotation, changement de langue, mode
+        // sombre) réexécutait cet effet inconditionnellement.
+        if (viewModel.uiState is ScanUiState.Idle) {
+            restart()
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -59,30 +70,21 @@ fun ScanScreen(
 
             is ScanUiState.Success -> ScanSuccess(
                 imagePath = state.imagePath,
-                onRescan = {
-                    viewModel.onScanStarted()
-                    startScan()
-                },
+                onRescan = restart,
                 onBack = onBack
             )
 
             ScanUiState.Cancelled -> ScanMessage(
                 title = stringResource(R.string.scan_cancelled_title),
                 message = stringResource(R.string.scan_cancelled_message),
-                onRetry = {
-                    viewModel.onScanStarted()
-                    startScan()
-                },
+                onRetry = restart,
                 onBack = onBack
             )
 
             is ScanUiState.Error -> ScanMessage(
                 title = stringResource(R.string.scan_error_title),
                 message = state.error.toDisplayMessage(),
-                onRetry = {
-                    viewModel.onScanStarted()
-                    startScan()
-                },
+                onRetry = restart,
                 onBack = onBack
             )
         }
