@@ -52,12 +52,51 @@ app/src/main/java/com/delivr/app/
 ## Workflow Git
 
 Une seule branche (`main`), commits atomiques, une fonctionnalité = un
-commit. Versionning sémantique lisible (`0.1.0`, `0.2.0`, ... `1.0.0`).
+commit.
+
+Les messages de commit suivent la convention
+[Conventional Commits](https://www.conventionalcommits.org/) : c'est ce que
+lit le workflow de release pour calculer automatiquement le prochain numéro
+de version.
+
+- `feat: ...` → nouvelle version **mineure** (`0.1.0` → `0.2.0`)
+- `fix: ...` → nouvelle version de **patch** (`0.1.0` → `0.1.1`)
+- `feat!: ...` ou un pied de commit `BREAKING CHANGE: ...` → version
+  **majeure** (`0.1.0` → `1.0.0`)
+- `docs:`, `chore:`, `refactor:`, `test:`, ... pour tout le reste
+
+## Intégration et livraison continues (GitHub Actions)
+
+Deux workflows tournent sur `.github/workflows/` :
+
+- **`ci.yml`** — à chaque push/PR sur `main` : tests unitaires, lint, build
+  debug. Produit une APK debug téléchargeable en artifact d'Action (30 jours).
+- **`release.yml`** — à chaque push sur `main` : calcule le prochain tag
+  SemVer à partir des Conventional Commits, build une **APK release
+  signée**, publie une GitHub Release avec l'APK attachée et le changelog
+  généré, puis met à jour `CHANGELOG.md`.
+
+Pour tester une nouvelle version sur un téléphone : ouvrir la dernière
+[GitHub Release](https://github.com/Samuellct/Delivr/releases), télécharger
+l'APK depuis le téléphone, l'installer (elle s'installe par-dessus la
+précédente sans perte de données, même `applicationId`, même clé de
+signature).
 
 ## Signature (release)
 
 Le keystore de release (`keystore/delivr-release.jks`) et ses identifiants
 (`keystore.properties`) sont gitignorés — ce sont des secrets, jamais
-commités. `app/build.gradle.kts` les charge automatiquement s'ils sont
-présents ; sans eux, seul le build debug fonctionne. En cas de nouveau poste
-de travail, copier ces deux éléments manuellement (jamais par Git).
+commités. `app/build.gradle.kts` résout la configuration de signature dans
+cet ordre :
+
+1. Variables d'environnement `KEYSTORE_FILE` / `KEYSTORE_PASSWORD` /
+   `KEY_ALIAS` / `KEY_PASSWORD` — utilisées par `release.yml`, qui
+   reconstitue le fichier `.jks` à partir du secret GitHub `KEYSTORE_BASE64`
+   (jamais commité, jamais loggé).
+2. `keystore.properties` en local, pour signer une release depuis un poste
+   de développement.
+3. Sans les deux : le build release reste non signé (le debug fonctionne
+   toujours).
+
+En cas de nouveau poste de travail, copier `keystore/` et
+`keystore.properties` manuellement (jamais par Git).
