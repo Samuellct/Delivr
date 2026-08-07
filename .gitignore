@@ -1,25 +1,25 @@
 *.iml
 .gradle/
+.idea/
+.kotlin/
 /local.properties
-.idea/caches
-.idea/libraries
-.idea/modules.xml
-.idea/workspace.xml
-.idea/navEditor.xml
-.idea/assetWizardSettings.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 /app/build
 /app/release
 *.apk
 *.aab
 
-# Feuille de route locale, non versionnée
-/TODO_V1.md
+# Documentation locale (spec, roadmap, instructions Claude), non versionnée.
+# README.md et CHANGELOG.md sont des exceptions : le premier documente le
+# projet pour GitHub, le second est mis à jour automatiquement par le
+# workflow de release (voir .github/workflows/release.yml).
+*.md
+!README.md
+!CHANGELOG.md
 
 # Keystore de signature et ses secrets — NE JAMAIS COMMITER
 /keystore/
