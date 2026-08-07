@@ -30,8 +30,8 @@ validation et le mode livraison seront ajoutés au fil des prochains commits
 ## Ouvrir le projet
 
 1. Ouvrir le dossier dans Android Studio (Ladybug ou plus récent).
-2. Laisser Gradle synchroniser (le wrapper est déjà configuré, Gradle 8.11.1
-   / AGP 8.7.2 / Kotlin 2.0.21).
+2. Laisser Gradle synchroniser (le wrapper est déjà configuré, Gradle 8.13
+   / AGP 8.13.2 / Kotlin 2.0.21).
 3. Lancer sur un appareil ou émulateur API 26+.
 
 ## Structure
