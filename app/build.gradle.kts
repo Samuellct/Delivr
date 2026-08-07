@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,15 +8,48 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Le keystore de release est un secret local (voir /keystore.properties, gitignoré).
-// S'il est absent (ex: nouveau clone du repo), les builds debug fonctionnent
-// normalement et le build release reste simplement non signé.
+// Le keystore de release est un secret. Deux sources possibles, dans cet ordre
+// de priorité :
+//  1. Variables d'environnement KEYSTORE_FILE / KEYSTORE_PASSWORD / KEY_ALIAS /
+//     KEY_PASSWORD — utilisées par le workflow GitHub Actions de release, qui
+//     reconstitue le fichier .jks à partir d'un secret base64 (voir
+//     .github/workflows/release.yml). Rien de tout cela n'est commité.
+//  2. /keystore.properties en local (gitignoré) — pour signer une release
+//     directement depuis un poste de développement.
+// En l'absence des deux, les builds debug fonctionnent normalement et le
+// build release reste simplement non signé.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
-val hasKeystoreConfig = keystorePropertiesFile.exists()
-if (hasKeystoreConfig) {
+if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+
+val envKeystoreFile = System.getenv("KEYSTORE_FILE")
+val envKeystorePassword = System.getenv("KEYSTORE_PASSWORD")
+val envKeyAlias = System.getenv("KEY_ALIAS")
+val envKeyPassword = System.getenv("KEY_PASSWORD")
+
+val resolvedStoreFile: File? = when {
+    !envKeystoreFile.isNullOrBlank() -> file(envKeystoreFile)
+    keystoreProperties.containsKey("storeFile") ->
+        rootProject.file(keystoreProperties["storeFile"] as String)
+    else -> null
+}
+val resolvedStorePassword = envKeystorePassword ?: keystoreProperties["storePassword"] as String?
+val resolvedKeyAlias = envKeyAlias ?: keystoreProperties["keyAlias"] as String?
+val resolvedKeyPassword = envKeyPassword ?: keystoreProperties["keyPassword"] as String?
+
+val hasKeystoreConfig = resolvedStoreFile != null &&
+    resolvedStoreFile.exists() &&
+    resolvedStorePassword != null &&
+    resolvedKeyAlias != null &&
+    resolvedKeyPassword != null
+
+// versionName/versionCode sont injectables par la CI (voir release.yml), qui
+// dérive le premier des tags SemVer (Conventional Commits) et le second du
+// numéro d'exécution du workflow. En local, valeurs par défaut ci-dessous.
+val resolvedVersionName = (project.findProperty("delivrVersionName") as String?) ?: "0.1.0"
+val resolvedVersionCode = (project.findProperty("delivrVersionCode") as String?)?.toIntOrNull() ?: 1
 
 android {
     namespace = "com.delivr.app"
@@ -25,8 +59,8 @@ android {
         applicationId = "com.delivr.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = resolvedVersionCode
+        versionName = resolvedVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -34,10 +68,10 @@ android {
     signingConfigs {
         if (hasKeystoreConfig) {
             create("release") {
-                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = resolvedStoreFile
+                storePassword = resolvedStorePassword
+                keyAlias = resolvedKeyAlias
+                keyPassword = resolvedKeyPassword
             }
         }
     }
@@ -60,8 +94,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
 
     buildFeatures {

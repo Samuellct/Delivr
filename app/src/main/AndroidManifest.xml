@@ -3,7 +3,11 @@
 
     <!--
         Delivr fonctionne 100% hors ligne : aucune permission réseau n'est déclarée.
-        La permission caméra sera ajoutée avec l'intégration de CameraX.
+        Pas de permission caméra non plus : le scan passe par le SDK ML Kit
+        Document Scanner (voir camera/DocumentScanner.kt), qui gère sa propre
+        activité de capture dans le processus Google Play services — Delivr
+        n'a jamais besoin d'accéder directement à la caméra (voir CLAUDE.md,
+        « Key architectural decision: no CameraX, no OpenCV »).
     -->
 
     <application
