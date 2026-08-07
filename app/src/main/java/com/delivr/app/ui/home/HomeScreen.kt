@@ -32,27 +32,29 @@ fun HomeScreen(
     onNouvelleTournee: () -> Unit,
     onReprendreTournee: () -> Unit,
     hasTourneeEnCours: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineLarge
+            style = MaterialTheme.typography.headlineLarge,
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
         Button(
             onClick = onNouvelleTournee,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
         ) {
             Text(stringResource(R.string.home_nouvelle_tournee))
         }
@@ -62,9 +64,10 @@ fun HomeScreen(
         OutlinedButton(
             onClick = onReprendreTournee,
             enabled = hasTourneeEnCours,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
         ) {
             Text(stringResource(R.string.home_reprendre_tournee))
         }
@@ -78,7 +81,7 @@ private fun HomeScreenPreview() {
         HomeScreen(
             onNouvelleTournee = {},
             onReprendreTournee = {},
-            hasTourneeEnCours = true
+            hasTourneeEnCours = true,
         )
     }
 }

@@ -24,5 +24,7 @@ sealed interface ScanError {
      * indisponible). [technicalMessage] est conservé pour le diagnostic
      * (log uniquement) mais jamais affiché directement à l'utilisateur.
      */
-    data class LaunchFailed(val technicalMessage: String?) : ScanError
+    data class LaunchFailed(
+        val technicalMessage: String?,
+    ) : ScanError
 }

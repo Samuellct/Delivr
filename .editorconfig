@@ -1,0 +1,8 @@
+root = true
+
+[*.{kt,kts}]
+# Les fonctions @Composable suivent la convention PascalCase de Jetpack
+# Compose (ex. ScanScreen, HomeScreen), pas le camelCase attendu par la
+# règle standard ktlint "function-naming". Sans ça, ktlintFormat/ktlintCheck
+# échouent sur tous les composables du projet.
+ktlint_function_naming_ignore_when_annotated_with = Composable

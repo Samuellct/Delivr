@@ -17,7 +17,11 @@ import kotlinx.coroutines.withContext
  */
 sealed interface ImageLoadState {
     data object Loading : ImageLoadState
-    data class Loaded(val bitmap: Bitmap) : ImageLoadState
+
+    data class Loaded(
+        val bitmap: Bitmap,
+    ) : ImageLoadState
+
     data object Failed : ImageLoadState
 }
 
@@ -28,7 +32,11 @@ sealed interface ImageLoadState {
  * efficaces par [BitmapFactory.decodeFile]). Pattern documenté par Google :
  * https://developer.android.com/topic/performance/graphics/load-bitmap
  */
-internal fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+internal fun calculateInSampleSize(
+    options: BitmapFactory.Options,
+    reqWidth: Int,
+    reqHeight: Int,
+): Int {
     val height = options.outHeight
     val width = options.outWidth
     var inSampleSize = 1
@@ -55,7 +63,11 @@ internal fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int
  * mémoire pour l'aperçu ; le fichier source sur le disque n'est jamais
  * modifié ni réécrit, il reste en pleine résolution pour l'OCR (Phase 3).
  */
-suspend fun loadDownsampledBitmap(path: String, reqWidth: Int, reqHeight: Int): ImageLoadState =
+suspend fun loadDownsampledBitmap(
+    path: String,
+    reqWidth: Int,
+    reqHeight: Int,
+): ImageLoadState =
     withContext(Dispatchers.IO) {
         runCatching {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -64,19 +76,22 @@ suspend fun loadDownsampledBitmap(path: String, reqWidth: Int, reqHeight: Int): 
                 return@withContext ImageLoadState.Failed
             }
 
-            val options = BitmapFactory.Options().apply {
-                inSampleSize = calculateInSampleSize(bounds, reqWidth, reqHeight)
-            }
-            val bitmap = BitmapFactory.decodeFile(path, options)
-                ?: return@withContext ImageLoadState.Failed
+            val options =
+                BitmapFactory.Options().apply {
+                    inSampleSize = calculateInSampleSize(bounds, reqWidth, reqHeight)
+                }
+            val bitmap =
+                BitmapFactory.decodeFile(path, options)
+                    ?: return@withContext ImageLoadState.Failed
 
             val rotationDegrees = runCatching { ExifInterface(path).rotationDegrees }.getOrDefault(0)
-            val oriented = if (rotationDegrees != 0) {
-                val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-            } else {
-                bitmap
-            }
+            val oriented =
+                if (rotationDegrees != 0) {
+                    val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                } else {
+                    bitmap
+                }
             ImageLoadState.Loaded(oriented)
         }.getOrDefault(ImageLoadState.Failed)
     }
@@ -91,10 +106,11 @@ suspend fun loadDownsampledBitmap(path: String, reqWidth: Int, reqHeight: Int): 
 fun rememberBitmapFromFile(
     path: String,
     reqWidth: Int = 1600,
-    reqHeight: Int = 1600
+    reqHeight: Int = 1600,
 ): ImageLoadState {
-    val state = produceState<ImageLoadState>(initialValue = ImageLoadState.Loading, path) {
-        value = loadDownsampledBitmap(path, reqWidth, reqHeight)
-    }
+    val state =
+        produceState<ImageLoadState>(initialValue = ImageLoadState.Loading, path) {
+            value = loadDownsampledBitmap(path, reqWidth, reqHeight)
+        }
     return state.value
 }

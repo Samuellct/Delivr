@@ -18,10 +18,18 @@ import com.delivr.app.camera.ScanOutcome
  */
 sealed interface ScanUiState {
     data object Idle : ScanUiState
+
     data object Scanning : ScanUiState
-    data class Success(val imagePath: String) : ScanUiState
+
+    data class Success(
+        val imagePath: String,
+    ) : ScanUiState
+
     data object Cancelled : ScanUiState
-    data class Error(val error: ScanError) : ScanUiState
+
+    data class Error(
+        val error: ScanError,
+    ) : ScanUiState
 }
 
 private const val KEY_KIND = "scan_ui_state_kind"
@@ -39,19 +47,24 @@ private const val ERROR_NO_DATA = "no_data"
 private const val ERROR_INVALID_CONTEXT = "invalid_context"
 private const val ERROR_LAUNCH_FAILED = "launch_failed"
 
-private fun ScanError.toSavedParts(): Pair<String, String?> = when (this) {
-    ScanError.NoImageReturned -> ERROR_NO_IMAGE to null
-    ScanError.NoDataReturned -> ERROR_NO_DATA to null
-    ScanError.InvalidContext -> ERROR_INVALID_CONTEXT to null
-    is ScanError.LaunchFailed -> ERROR_LAUNCH_FAILED to technicalMessage
-}
+private fun ScanError.toSavedParts(): Pair<String, String?> =
+    when (this) {
+        ScanError.NoImageReturned -> ERROR_NO_IMAGE to null
+        ScanError.NoDataReturned -> ERROR_NO_DATA to null
+        ScanError.InvalidContext -> ERROR_INVALID_CONTEXT to null
+        is ScanError.LaunchFailed -> ERROR_LAUNCH_FAILED to technicalMessage
+    }
 
-private fun restoreScanError(kind: String?, technicalMessage: String?): ScanError = when (kind) {
-    ERROR_NO_IMAGE -> ScanError.NoImageReturned
-    ERROR_NO_DATA -> ScanError.NoDataReturned
-    ERROR_INVALID_CONTEXT -> ScanError.InvalidContext
-    else -> ScanError.LaunchFailed(technicalMessage)
-}
+private fun restoreScanError(
+    kind: String?,
+    technicalMessage: String?,
+): ScanError =
+    when (kind) {
+        ERROR_NO_IMAGE -> ScanError.NoImageReturned
+        ERROR_NO_DATA -> ScanError.NoDataReturned
+        ERROR_INVALID_CONTEXT -> ScanError.InvalidContext
+        else -> ScanError.LaunchFailed(technicalMessage)
+    }
 
 /**
  * Reconstruit [ScanUiState] depuis les primitives persistées dans
@@ -68,20 +81,26 @@ private fun restoreScanError(kind: String?, technicalMessage: String?): ScanErro
  */
 private fun restoreUiState(savedStateHandle: SavedStateHandle): ScanUiState =
     when (savedStateHandle.get<String>(KEY_KIND)) {
-        KIND_SUCCESS -> savedStateHandle.get<String>(KEY_IMAGE_PATH)
-            ?.let { ScanUiState.Success(it) }
-            ?: ScanUiState.Idle
+        KIND_SUCCESS ->
+            savedStateHandle
+                .get<String>(KEY_IMAGE_PATH)
+                ?.let { ScanUiState.Success(it) }
+                ?: ScanUiState.Idle
         KIND_CANCELLED -> ScanUiState.Cancelled
-        KIND_ERROR -> ScanUiState.Error(
-            restoreScanError(
-                savedStateHandle.get<String>(KEY_ERROR_KIND),
-                savedStateHandle.get<String>(KEY_ERROR_MESSAGE)
+        KIND_ERROR ->
+            ScanUiState.Error(
+                restoreScanError(
+                    savedStateHandle.get<String>(KEY_ERROR_KIND),
+                    savedStateHandle.get<String>(KEY_ERROR_MESSAGE),
+                ),
             )
-        )
         else -> ScanUiState.Idle
     }
 
-private fun persistUiState(savedStateHandle: SavedStateHandle, state: ScanUiState) {
+private fun persistUiState(
+    savedStateHandle: SavedStateHandle,
+    state: ScanUiState,
+) {
     when (state) {
         ScanUiState.Idle, ScanUiState.Scanning -> {
             savedStateHandle[KEY_KIND] = KIND_IDLE
@@ -114,7 +133,9 @@ private fun persistUiState(savedStateHandle: SavedStateHandle, state: ScanUiStat
  * mort du process en arrière-plan — sans ça, un scan terminé était perdu
  * dans les deux cas.
  */
-class ScanViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
+class ScanViewModel(
+    private val savedStateHandle: SavedStateHandle,
+) : ViewModel() {
     var uiState: ScanUiState by mutableStateOf(restoreUiState(savedStateHandle))
         private set
 
@@ -128,7 +149,7 @@ class ScanViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
                 is ScanOutcome.Success -> ScanUiState.Success(outcome.imagePath)
                 is ScanOutcome.Cancelled -> ScanUiState.Cancelled
                 is ScanOutcome.Error -> ScanUiState.Error(outcome.error)
-            }
+            },
         )
     }
 

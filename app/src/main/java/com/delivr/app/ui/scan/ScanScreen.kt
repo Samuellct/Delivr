@@ -40,7 +40,7 @@ import com.delivr.app.utils.rememberBitmapFromFile
 fun ScanRoute(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ScanViewModel = viewModel()
+    viewModel: ScanViewModel = viewModel(),
 ) {
     val startScan = rememberDocumentScannerLauncher(onResult = viewModel::onScanOutcome)
     ScanScreen(onBack = onBack, startScan = startScan, modifier = modifier, viewModel = viewModel)
@@ -63,7 +63,7 @@ fun ScanScreen(
     onBack: () -> Unit,
     startScan: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ScanViewModel = viewModel()
+    viewModel: ScanViewModel = viewModel(),
 ) {
     val uiState = viewModel.uiState
     val restart: () -> Unit = {
@@ -87,25 +87,28 @@ fun ScanScreen(
         when (val state = uiState) {
             ScanUiState.Idle, ScanUiState.Scanning -> ScanLoading()
 
-            is ScanUiState.Success -> ScanSuccess(
-                imagePath = state.imagePath,
-                onRescan = restart,
-                onBack = onBack
-            )
+            is ScanUiState.Success ->
+                ScanSuccess(
+                    imagePath = state.imagePath,
+                    onRescan = restart,
+                    onBack = onBack,
+                )
 
-            ScanUiState.Cancelled -> ScanMessage(
-                title = stringResource(R.string.scan_cancelled_title),
-                message = stringResource(R.string.scan_cancelled_message),
-                onRetry = restart,
-                onBack = onBack
-            )
+            ScanUiState.Cancelled ->
+                ScanMessage(
+                    title = stringResource(R.string.scan_cancelled_title),
+                    message = stringResource(R.string.scan_cancelled_message),
+                    onRetry = restart,
+                    onBack = onBack,
+                )
 
-            is ScanUiState.Error -> ScanMessage(
-                title = stringResource(R.string.scan_error_title),
-                message = state.error.toDisplayMessage(),
-                onRetry = restart,
-                onBack = onBack
-            )
+            is ScanUiState.Error ->
+                ScanMessage(
+                    title = stringResource(R.string.scan_error_title),
+                    message = state.error.toDisplayMessage(),
+                    onRetry = restart,
+                    onBack = onBack,
+                )
         }
     }
 }
@@ -119,19 +122,20 @@ fun ScanScreen(
  * `DocumentScanner.kt`).
  */
 @Composable
-private fun ScanError.toDisplayMessage(): String = when (this) {
-    ScanError.NoImageReturned -> stringResource(R.string.scan_error_no_image)
-    ScanError.NoDataReturned -> stringResource(R.string.scan_error_no_data)
-    ScanError.InvalidContext -> stringResource(R.string.scan_error_invalid_context)
-    is ScanError.LaunchFailed -> stringResource(R.string.scan_error_launch_failed)
-}
+private fun ScanError.toDisplayMessage(): String =
+    when (this) {
+        ScanError.NoImageReturned -> stringResource(R.string.scan_error_no_image)
+        ScanError.NoDataReturned -> stringResource(R.string.scan_error_no_data)
+        ScanError.InvalidContext -> stringResource(R.string.scan_error_invalid_context)
+        is ScanError.LaunchFailed -> stringResource(R.string.scan_error_launch_failed)
+    }
 
 @Composable
 private fun ScanLoading(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(16.dp))
@@ -144,30 +148,33 @@ private fun ScanSuccess(
     imagePath: String,
     onRescan: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val imageState = rememberBitmapFromFile(imagePath)
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(16.dp),
     ) {
         Text(stringResource(R.string.scan_success_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
 
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
         ) {
             when (imageState) {
-                is ImageLoadState.Loaded -> Image(
-                    bitmap = imageState.bitmap.asImageBitmap(),
-                    contentDescription = stringResource(R.string.scan_success_image_description),
-                    modifier = Modifier.fillMaxSize()
-                )
+                is ImageLoadState.Loaded ->
+                    Image(
+                        bitmap = imageState.bitmap.asImageBitmap(),
+                        contentDescription = stringResource(R.string.scan_success_image_description),
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 ImageLoadState.Loading -> CircularProgressIndicator()
                 ImageLoadState.Failed -> Text(stringResource(R.string.scan_image_load_failed))
             }
@@ -177,9 +184,10 @@ private fun ScanSuccess(
 
         Button(
             onClick = onRescan,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
         ) {
             Text(stringResource(R.string.scan_rescan_button))
         }
@@ -191,9 +199,10 @@ private fun ScanSuccess(
         OutlinedButton(
             onClick = {},
             enabled = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
         ) {
             Text(stringResource(R.string.scan_continue_button))
         }
@@ -212,14 +221,15 @@ private fun ScanMessage(
     message: String,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(title, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
@@ -227,9 +237,10 @@ private fun ScanMessage(
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = onRetry,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
         ) {
             Text(stringResource(R.string.scan_retry_button))
         }

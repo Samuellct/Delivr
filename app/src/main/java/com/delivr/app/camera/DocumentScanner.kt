@@ -18,11 +18,11 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanner
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
-import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Résultat d'une tentative de scan de document.
@@ -41,9 +41,15 @@ sealed interface ScanOutcome {
      * autorisation de lecture transitoire, non garantie après recréation du
      * process. Voir [copyToInternalStorage].
      */
-    data class Success(val imagePath: String) : ScanOutcome
+    data class Success(
+        val imagePath: String,
+    ) : ScanOutcome
+
     data object Cancelled : ScanOutcome
-    data class Error(val error: ScanError) : ScanOutcome
+
+    data class Error(
+        val error: ScanError,
+    ) : ScanOutcome
 }
 
 private const val TAG = "DocumentScanner"
@@ -58,7 +64,8 @@ private const val TAG = "DocumentScanner"
  * la capture caméra uniquement.
  */
 private fun buildScannerOptions(): GmsDocumentScannerOptions =
-    GmsDocumentScannerOptions.Builder()
+    GmsDocumentScannerOptions
+        .Builder()
         .setGalleryImportAllowed(true)
         .setPageLimit(1)
         .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG)
@@ -71,15 +78,19 @@ private fun buildScannerOptions(): GmsDocumentScannerOptions =
  * une seule tournée à la fois est en cours, pas besoin d'historique ici.
  * Retourne `null` en cas d'échec de copie (source illisible, disque plein...).
  */
-private fun copyToInternalStorage(context: Context, sourceUri: Uri): String? = runCatching {
-    val internalFile = File(context.filesDir, "scans/current_scan.jpg")
-    internalFile.parentFile?.mkdirs()
-    val stream = context.contentResolver.openInputStream(sourceUri) ?: return null
-    stream.use { input ->
-        internalFile.outputStream().use { output -> input.copyTo(output) }
-    }
-    internalFile.absolutePath
-}.getOrNull()
+private fun copyToInternalStorage(
+    context: Context,
+    sourceUri: Uri,
+): String? =
+    runCatching {
+        val internalFile = File(context.filesDir, "scans/current_scan.jpg")
+        internalFile.parentFile?.mkdirs()
+        val stream = context.contentResolver.openInputStream(sourceUri) ?: return null
+        stream.use { input ->
+            internalFile.outputStream().use { output -> input.copyTo(output) }
+        }
+        internalFile.absolutePath
+    }.getOrNull()
 
 /**
  * Prépare le lancement du flux de scan ML Kit et retourne une fonction à
@@ -93,42 +104,46 @@ fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
     val currentOnResult by rememberUpdatedState(onResult)
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { activityResult ->
-        val resultData = activityResult.data
-        if (activityResult.resultCode == RESULT_OK && resultData != null) {
-            val imageUri = runCatching {
-                GmsDocumentScanningResult.fromActivityResultIntent(resultData)
-                    ?.pages
-                    ?.firstOrNull()
-                    ?.imageUri
-            }.getOrNull()
+    val launcher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartIntentSenderForResult(),
+        ) { activityResult ->
+            val resultData = activityResult.data
+            if (activityResult.resultCode == RESULT_OK && resultData != null) {
+                val imageUri =
+                    runCatching {
+                        GmsDocumentScanningResult
+                            .fromActivityResultIntent(resultData)
+                            ?.pages
+                            ?.firstOrNull()
+                            ?.imageUri
+                    }.getOrNull()
 
-            if (imageUri != null) {
-                // Copie hors du thread principal : lecture/écriture disque pour
-                // une image A4 pleine résolution, pas une opération instantanée.
-                coroutineScope.launch {
-                    val imagePath = withContext(Dispatchers.IO) {
-                        copyToInternalStorage(context, imageUri)
+                if (imageUri != null) {
+                    // Copie hors du thread principal : lecture/écriture disque pour
+                    // une image A4 pleine résolution, pas une opération instantanée.
+                    coroutineScope.launch {
+                        val imagePath =
+                            withContext(Dispatchers.IO) {
+                                copyToInternalStorage(context, imageUri)
+                            }
+                        if (imagePath != null) {
+                            currentOnResult(ScanOutcome.Success(imagePath))
+                        } else {
+                            currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
+                        }
                     }
-                    if (imagePath != null) {
-                        currentOnResult(ScanOutcome.Success(imagePath))
-                    } else {
-                        currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
-                    }
+                } else {
+                    currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
                 }
+            } else if (activityResult.resultCode == RESULT_OK) {
+                // RESULT_OK mais pas de données exploitables : on le traite comme une erreur
+                // plutôt qu'une annulation silencieuse, pour ne pas masquer un vrai problème.
+                currentOnResult(ScanOutcome.Error(ScanError.NoDataReturned))
             } else {
-                currentOnResult(ScanOutcome.Error(ScanError.NoImageReturned))
+                currentOnResult(ScanOutcome.Cancelled)
             }
-        } else if (activityResult.resultCode == RESULT_OK) {
-            // RESULT_OK mais pas de données exploitables : on le traite comme une erreur
-            // plutôt qu'une annulation silencieuse, pour ne pas masquer un vrai problème.
-            currentOnResult(ScanOutcome.Error(ScanError.NoDataReturned))
-        } else {
-            currentOnResult(ScanOutcome.Cancelled)
         }
-    }
 
     return remember(activity, launcher) {
         {
@@ -136,17 +151,17 @@ fun rememberDocumentScannerLauncher(onResult: (ScanOutcome) -> Unit): () -> Unit
                 currentOnResult(ScanOutcome.Error(ScanError.InvalidContext))
             } else {
                 val scanner: GmsDocumentScanner = GmsDocumentScanning.getClient(buildScannerOptions())
-                scanner.getStartScanIntent(activity)
+                scanner
+                    .getStartScanIntent(activity)
                     .addOnSuccessListener { intentSender ->
                         launcher.launch(IntentSenderRequest.Builder(intentSender).build())
-                    }
-                    .addOnFailureListener { exception ->
+                    }.addOnFailureListener { exception ->
                         // Le message brut de l'exception ML Kit est loggé pour le
                         // diagnostic, mais jamais affiché tel quel à l'utilisateur
                         // (voir ScanError.LaunchFailed et son résolveur dans ScanScreen.kt).
                         Log.w(TAG, "Échec du démarrage du scanner", exception)
                         currentOnResult(
-                            ScanOutcome.Error(ScanError.LaunchFailed(exception.message))
+                            ScanOutcome.Error(ScanError.LaunchFailed(exception.message)),
                         )
                     }
             }

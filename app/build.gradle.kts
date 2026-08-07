@@ -1,11 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ktlint)
 }
 
 // Le keystore de release est un secret. Deux sources possibles, dans cet ordre
@@ -29,21 +30,23 @@ val envKeystorePassword = System.getenv("KEYSTORE_PASSWORD")
 val envKeyAlias = System.getenv("KEY_ALIAS")
 val envKeyPassword = System.getenv("KEY_PASSWORD")
 
-val resolvedStoreFile: File? = when {
-    !envKeystoreFile.isNullOrBlank() -> file(envKeystoreFile)
-    keystoreProperties.containsKey("storeFile") ->
-        rootProject.file(keystoreProperties["storeFile"] as String)
-    else -> null
-}
+val resolvedStoreFile: File? =
+    when {
+        !envKeystoreFile.isNullOrBlank() -> file(envKeystoreFile)
+        keystoreProperties.containsKey("storeFile") ->
+            rootProject.file(keystoreProperties["storeFile"] as String)
+        else -> null
+    }
 val resolvedStorePassword = envKeystorePassword ?: keystoreProperties["storePassword"] as String?
 val resolvedKeyAlias = envKeyAlias ?: keystoreProperties["keyAlias"] as String?
 val resolvedKeyPassword = envKeyPassword ?: keystoreProperties["keyPassword"] as String?
 
-val hasKeystoreConfig = resolvedStoreFile != null &&
-    resolvedStoreFile.exists() &&
-    resolvedStorePassword != null &&
-    resolvedKeyAlias != null &&
-    resolvedKeyPassword != null
+val hasKeystoreConfig =
+    resolvedStoreFile != null &&
+        resolvedStoreFile.exists() &&
+        resolvedStorePassword != null &&
+        resolvedKeyAlias != null &&
+        resolvedKeyPassword != null
 
 // versionName/versionCode sont injectables par la CI (voir release.yml), qui
 // dérive le premier des tags SemVer (Conventional Commits) et le second du
@@ -81,7 +84,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             if (hasKeystoreConfig) {
                 signingConfig = signingConfigs.getByName("release")
@@ -120,6 +123,7 @@ dependencies {
     implementation(libs.androidx.exifinterface)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

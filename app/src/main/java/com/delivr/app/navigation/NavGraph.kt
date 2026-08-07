@@ -21,7 +21,7 @@ fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
                 onReprendreTournee = {
                     // TODO: reprendre la tournée sauvegardée une fois Room branché
                 },
-                hasTourneeEnCours = false
+                hasTourneeEnCours = false,
             )
         }
         composable(Routes.SCAN) {
