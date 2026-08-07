@@ -23,14 +23,16 @@ private val LightColorScheme = lightColorScheme(
 )
 
 /**
- * Thème global de l'application. Le dynamic color (Android 12+) est activé
- * par défaut ; il peut être désactivé si une identité visuelle propre à
- * Delivr est définie plus tard.
+ * Thème global de l'application. Le dynamic color (Android 12+) est
+ * désactivé par défaut : Delivr a sa propre identité visuelle (Teal/Vert,
+ * voir [Color.kt][com.delivr.app.ui.theme]) qui doit rester stable et
+ * reconnaissable d'un appareil à l'autre, plutôt que de suivre le fond
+ * d'écran de chaque utilisateur.
  */
 @Composable
 fun DelivrTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

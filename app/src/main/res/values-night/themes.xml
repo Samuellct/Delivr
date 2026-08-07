@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+        Variante sombre du thème racine (voir res/values/themes.xml). Sans
+        elle, la fenêtre native reste dans le thème clair (parent
+        android:Theme.Material.Light.NoActionBar) jusqu'au premier frame
+        Compose : un appareil en mode sombre voit un flash blanc au
+        démarrage à froid. Le parent ici est la variante non "Light" du même
+        thème système, pour un fond cohérent avant que DelivrTheme (Compose)
+        ne prenne la main.
+    -->
+    <style name="Theme.Delivr" parent="android:Theme.Material.NoActionBar" />
+</resources>
