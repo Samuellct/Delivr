@@ -26,3 +26,8 @@
 # Keystore de signature et ses secrets — NE JAMAIS COMMITER
 /keystore/
 /keystore.properties
+
+# Photos réelles de feuilles de livraison (données clients), jamais versionnées.
+# Utilisées localement par la sonde OCR de la Phase 2 (TODO_V1.md) — la fixture
+# synthétique du dossier voisin fixtures/ est versionnée normalement, elle.
+/app/src/androidTest/assets/real_samples/
