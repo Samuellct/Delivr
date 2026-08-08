@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -49,6 +50,9 @@ import com.delivr.app.domain.formatCottageNumber
 private const val MIN_COTTAGE_NUMBER = 1
 private const val MAX_COTTAGE_NUMBER = 999
 private const val MAX_DIGITS = 3
+
+/** Repère le champ de saisie de [CottageNumberDialog] pour `ValidationScreenTest`. */
+const val COTTAGE_NUMBER_FIELD_TAG = "cottage_number_field"
 
 /**
  * Point d'entrée de la destination de navigation "validation" : c'est ici
@@ -313,6 +317,7 @@ private fun CottageNumberDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     isError = text.isNotEmpty() && !isValid,
+                    modifier = Modifier.testTag(COTTAGE_NUMBER_FIELD_TAG),
                 )
                 if (text.isNotEmpty() && isOutOfRange) {
                     Text(
