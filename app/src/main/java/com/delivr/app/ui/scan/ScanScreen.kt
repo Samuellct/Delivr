@@ -39,11 +39,18 @@ import com.delivr.app.utils.rememberBitmapFromFile
 @Composable
 fun ScanRoute(
     onBack: () -> Unit,
+    onContinue: (imagePath: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ScanViewModel = viewModel(),
 ) {
     val startScan = rememberDocumentScannerLauncher(onResult = viewModel::onScanOutcome)
-    ScanScreen(onBack = onBack, startScan = startScan, modifier = modifier, viewModel = viewModel)
+    ScanScreen(
+        onBack = onBack,
+        onContinue = onContinue,
+        startScan = startScan,
+        modifier = modifier,
+        viewModel = viewModel,
+    )
 }
 
 /**
@@ -61,6 +68,7 @@ fun ScanRoute(
 @Composable
 fun ScanScreen(
     onBack: () -> Unit,
+    onContinue: (imagePath: String) -> Unit,
     startScan: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ScanViewModel = viewModel(),
@@ -91,6 +99,7 @@ fun ScanScreen(
                 ScanSuccess(
                     imagePath = state.imagePath,
                     onRescan = restart,
+                    onContinue = { onContinue(state.imagePath) },
                     onBack = onBack,
                 )
 
@@ -147,6 +156,7 @@ private fun ScanLoading(modifier: Modifier = Modifier) {
 private fun ScanSuccess(
     imagePath: String,
     onRescan: () -> Unit,
+    onContinue: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -194,11 +204,8 @@ private fun ScanSuccess(
 
         Spacer(Modifier.height(8.dp))
 
-        // Le passage à l'extraction OCR (colonne "Cott") est une étape
-        // ultérieure de la feuille de route (voir TODO_V1.md, étape 2).
         OutlinedButton(
-            onClick = {},
-            enabled = false,
+            onClick = onContinue,
             modifier =
                 Modifier
                     .fillMaxWidth()

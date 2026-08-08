@@ -10,7 +10,7 @@
     <string name="scan_success_title">Document scanné</string>
     <string name="scan_success_image_description">Aperçu du document scanné</string>
     <string name="scan_rescan_button">Recommencer</string>
-    <string name="scan_continue_button">Continuer (extraction à venir)</string>
+    <string name="scan_continue_button">Continuer</string>
     <string name="scan_image_load_failed">Impossible d\'afficher l\'aperçu du document.</string>
 
     <string name="scan_cancelled_title">Scan annulé</string>
@@ -22,4 +22,14 @@
     <string name="scan_error_no_data">Le scanner n\'a retourné aucune donnée.</string>
     <string name="scan_error_invalid_context">Impossible de démarrer le scanner (contexte invalide).</string>
     <string name="scan_error_launch_failed">Échec du démarrage du scanner.</string>
+
+    <string name="validation_title">Cottages détectés</string>
+    <string name="validation_loading_message">Extraction des numéros de cottage…</string>
+    <string name="validation_count">%d cottage(s) détecté(s)</string>
+
+    <string name="validation_error_title">Extraction impossible</string>
+    <string name="validation_retry_button">Réessayer</string>
+    <string name="validation_error_image_unreadable">Impossible de relire l\'image scannée.</string>
+    <string name="validation_error_header_not_found">Impossible de repérer la colonne « Cott » sur ce scan.</string>
+    <string name="validation_error_no_numbers_found">Aucun numéro de cottage n\'a été détecté.</string>
 </resources>
