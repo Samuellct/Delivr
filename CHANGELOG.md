@@ -1,4 +1,32 @@
 
+## [v0.4.0] - 2026-08-08
+## [0.4.0](https://github.com/Samuellct/Delivr/compare/v0.3.1...v0.4.0) (2026-08-08)
+
+
+### Features
+
+* **database:** schéma Room de la tournée en cours ([b8c0036](https://github.com/Samuellct/Delivr/commit/b8c0036c728151a75a3f5596874c952b358e3074))
+* **home:** reprise réelle de la tournée en cours depuis Room ([8f8fa5d](https://github.com/Samuellct/Delivr/commit/8f8fa5d5c7c1f97ea40c3be7f634ba934abc5392))
+* **repository:** RoundRepository au-dessus du DAO Room ([3bd30cb](https://github.com/Samuellct/Delivr/commit/3bd30cbe7a974c9ffa5a1eed5991132df378f2fa))
+* **validation:** sauvegarde automatique de la tournée dans Room ([f39f347](https://github.com/Samuellct/Delivr/commit/f39f3473d0371bb2addf2c633f02e90adf136856))
+
+
+### Documentation
+
+* documente la persistance Room dans le README ([f5d5db1](https://github.com/Samuellct/Delivr/commit/f5d5db167805c0512c53f597bb41d46e2e0dd97a))
+
+
+### Tests
+
+* **database:** tests DAO Room et scénario de reprise ([4a2b1d7](https://github.com/Samuellct/Delivr/commit/4a2b1d770952ae1c455596ecf9dcc2336d40c048))
+
+
+### Build Systems
+
+* passer Kotlin en 2.2.21 et ajouter KSP + Room 2.8.4 ([7ff065d](https://github.com/Samuellct/Delivr/commit/7ff065dc598cbfef1ebea661482cc7c9601b542b))
+
+
+
 ## [v0.3.1] - 2026-08-08
 ### [0.3.1](https://github.com/Samuellct/Delivr/compare/v0.3.0...v0.3.1) (2026-08-08)
 
