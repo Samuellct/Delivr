@@ -3,6 +3,7 @@ package com.delivr.app.ui.validation
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -44,9 +45,11 @@ class ValidationScreenTest {
     ) {
         composeTestRule.setContent {
             var uiState by
-                mutableStateOf<ValidationUiState>(
-                    ValidationUiState.Success(initialNumbers, initialDirection),
-                )
+                remember {
+                    mutableStateOf<ValidationUiState>(
+                        ValidationUiState.Success(initialNumbers, initialDirection),
+                    )
+                }
 
             DelivrTheme {
                 ValidationScreen(
