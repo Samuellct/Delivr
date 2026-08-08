@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Règles lues par Android 12 (API 31) et plus. Deux sections distinctes,
+    obligatoirement : <cloud-backup> couvre la sauvegarde Google Drive,
+    <device-transfer> le transfert direct vers un nouveau téléphone. Chacune
+    inclut tout par défaut ; on se contente donc d'exclure.
+
+    Exclus : la base Room (tournée du jour + numéros de cottages = données
+    clients, alors que Delivr est une app 100% hors ligne) et le dossier des
+    scans (photo de la feuille de livraison réelle). Une tournée restaurée
+    plusieurs jours plus tard n'aurait de toute façon aucun sens : elle
+    activerait « Reprendre la tournée en cours » sur une journée périmée.
+
+    Les fichiers -wal/-shm accompagnent delivr.db (mode WAL de SQLite) :
+    exclure uniquement delivr.db laisserait fuiter des données encore dans le
+    journal.
+
+    Voir aussi backup_rules.xml, l'équivalent pour Android 8-11 (API 26-30) :
+    minSdk = 26, donc les deux fichiers sont nécessaires et doivent rester
+    synchronisés.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="delivr.db" />
+        <exclude domain="database" path="delivr.db-wal" />
+        <exclude domain="database" path="delivr.db-shm" />
+        <exclude domain="file" path="scans" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="delivr.db" />
+        <exclude domain="database" path="delivr.db-wal" />
+        <exclude domain="database" path="delivr.db-shm" />
+        <exclude domain="file" path="scans" />
+    </device-transfer>
+</data-extraction-rules>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Équivalent hérité de data_extraction_rules.xml pour Android 8 à 11
+    (API 26-30), qui ignorent android:dataExtractionRules. minSdk = 26, donc
+    ce fichier est indispensable : sans lui, ces appareils sauvegardent tout
+    par défaut, base incluse. Garder les deux fichiers synchronisés.
+
+    -journal en plus des -wal/-shm : les anciennes versions de SQLite peuvent
+    encore utiliser le mode journal classique plutôt que WAL.
+-->
+<full-backup-content>
+    <exclude domain="database" path="delivr.db" />
+    <exclude domain="database" path="delivr.db-journal" />
+    <exclude domain="database" path="delivr.db-wal" />
+    <exclude domain="database" path="delivr.db-shm" />
+    <exclude domain="file" path="scans" />
+</full-backup-content>
