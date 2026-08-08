@@ -32,4 +32,19 @@
     <string name="validation_error_image_unreadable">Impossible de relire l\'image scannée.</string>
     <string name="validation_error_header_not_found">Impossible de repérer la colonne « Cott » sur ce scan.</string>
     <string name="validation_error_no_numbers_found">Aucun numéro de cottage n\'a été détecté.</string>
+
+    <string name="action_cancel">Annuler</string>
+
+    <string name="validation_sort_ascending">Croissant</string>
+    <string name="validation_sort_descending">Décroissant</string>
+
+    <string name="validation_add_title">Ajouter un cottage</string>
+    <string name="validation_edit_title">Modifier le cottage</string>
+    <string name="validation_dialog_label">Numéro de cottage</string>
+    <string name="validation_add_button">Ajouter</string>
+    <string name="validation_save_button">Enregistrer</string>
+    <string name="validation_error_out_of_range">Le numéro doit être compris entre 1 et 999.</string>
+    <string name="validation_error_duplicate">Ce numéro existe déjà dans la liste.</string>
+    <string name="validation_delete_content_description">Supprimer le cottage %s</string>
+    <string name="validation_add_fab_content_description">Ajouter un cottage</string>
 </resources>
