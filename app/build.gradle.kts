@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.mlkit.document.scanner)
     implementation(libs.mlkit.text.recognition)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
