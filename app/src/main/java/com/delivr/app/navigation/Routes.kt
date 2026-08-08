@@ -19,4 +19,14 @@ object Routes {
      * de route).
      */
     fun validation(imagePath: String) = "validation/${Uri.encode(imagePath)}"
+
+    /**
+     * Reprise de la tournée sauvegardée (Phase 5.4) : même écran que
+     * [VALIDATION], mais sans argument `imagePath` — il n'y a rien à
+     * extraire, la liste vient de Room. Route distincte plutôt qu'un
+     * argument optionnel : chacune a sa propre entrée de pile (donc son
+     * propre ViewModel/SavedStateHandle), et le graphe dit explicitement
+     * lequel des deux chemins a été pris.
+     */
+    const val VALIDATION_RESUME = "validation_resume"
 }

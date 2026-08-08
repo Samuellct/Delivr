@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.delivr.app.ui.home.HomeScreen
+import com.delivr.app.ui.home.HomeRoute
 import com.delivr.app.ui.scan.ScanRoute
 import com.delivr.app.ui.validation.ValidationRoute
 
@@ -20,12 +20,9 @@ import com.delivr.app.ui.validation.ValidationRoute
 fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Routes.HOME) {
         composable(Routes.HOME) {
-            HomeScreen(
+            HomeRoute(
                 onNouvelleTournee = { navController.navigate(Routes.SCAN) },
-                onReprendreTournee = {
-                    // TODO: reprendre la tournée sauvegardée une fois Room branché
-                },
-                hasTourneeEnCours = false,
+                onReprendreTournee = { navController.navigate(Routes.VALIDATION_RESUME) },
             )
         }
         composable(Routes.SCAN) {
@@ -42,6 +39,12 @@ fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
                 Uri.decode(backStackEntry.arguments?.getString(Routes.VALIDATION_ARG_IMAGE_PATH).orEmpty())
             ValidationRoute(
                 imagePath = imagePath,
+                onBack = { navController.popBackStack(Routes.HOME, inclusive = false) },
+            )
+        }
+        composable(Routes.VALIDATION_RESUME) {
+            ValidationRoute(
+                imagePath = null,
                 onBack = { navController.popBackStack(Routes.HOME, inclusive = false) },
             )
         }
