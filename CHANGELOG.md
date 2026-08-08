@@ -1,4 +1,20 @@
 
+## [v0.3.0] - 2026-08-08
+## [0.3.0](https://github.com/Samuellct/Delivr/compare/v0.2.1...v0.3.0) (2026-08-08)
+
+
+### Features
+
+* logique pure d'édition de la liste de cottages (Phase 4.2-4.5) ([6df2324](https://github.com/Samuellct/Delivr/commit/6df2324828e5ea4c13b176bf98933a641e673601))
+* rend l'écran de validation éditable (Phase 4.2-4.5) ([37408c8](https://github.com/Samuellct/Delivr/commit/37408c8d02dc83e8538e01fb93550d217816d47c))
+
+
+### Tests
+
+* ajoute les tests Compose UI de l'écran de validation (Phase 4.6) ([088481c](https://github.com/Samuellct/Delivr/commit/088481cc384e0862d0c8307fa13d17c51462bdd7))
+
+
+
 ## [v0.2.1] - 2026-08-08
 ### [0.2.1](https://github.com/Samuellct/Delivr/compare/v0.2.0...v0.2.1) (2026-08-08)
 
