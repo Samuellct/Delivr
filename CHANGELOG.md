@@ -1,4 +1,26 @@
 
+## [v0.2.0] - 2026-08-08
+## [0.2.0](https://github.com/Samuellct/Delivr/compare/v0.1.0...v0.2.0) (2026-08-08)
+
+
+### Features
+
+* écran de validation minimal, en lecture seule (Phase 3) ([00a3ecf](https://github.com/Samuellct/Delivr/commit/00a3ecff8c3d243cdbf2ae2d616a12171ceca1ba))
+* extraction pure des numéros de cottage (Phase 3.2-3.5) ([6641e87](https://github.com/Samuellct/Delivr/commit/6641e874999fa16927442b6393a8c4d50eb97ace))
+* intègre ML Kit Text Recognition dans ocr/ (Phase 3.1) ([d94f1f9](https://github.com/Samuellct/Delivr/commit/d94f1f9f94e34ccf59274c8b831e3e701f9240e6))
+
+
+### Tests
+
+* pipeline OCR bout en bout sur la fixture + mise à jour ScanScreenTest (Phase 3.6) ([9abffef](https://github.com/Samuellct/Delivr/commit/9abffefd1f9e01bcdf087c1ada1b7c3a47e9a67b))
+
+
+### Code Refactoring
+
+* extrait la rotation EXIF et ajoute loadFullResolutionBitmap ([8464361](https://github.com/Samuellct/Delivr/commit/8464361ba663ea36680789d8b36409e3574c00ea))
+
+
+
 ## [v0.1.0] - 2026-08-07
 ## [0.1.0](https://github.com/Samuellct/Delivr/compare/v0.0.2...v0.1.0) (2026-08-07)
 
