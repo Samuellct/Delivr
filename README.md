@@ -16,36 +16,37 @@ cottage par cottage.
   de perspective, amélioration du contraste — remplace CameraX, voir
   `TODO_V1.md` § 1 pour le détail de cette décision)
 - Google ML Kit OCR (reconnaissance de texte, hors ligne)
-- Room (sauvegarde locale de la tournée en cours)
+- Room 2.8.4, via KSP (sauvegarde locale de la tournée en cours)
 
-## État actuel — v0.1.0
+## État actuel
 
-Structure Gradle, thème Compose, navigation, écran d'accueil fonctionnel, et
-écran de scan opérationnel (déclenchement automatique du scanner ML Kit,
-aperçu du document redressé, gestion des cas d'annulation/erreur). L'OCR, la
-validation et le mode livraison seront ajoutés au fil des prochains commits
-(voir `app/src/main/java/com/delivr/app/`, dossiers `ocr`, `data`, `domain`,
-`repository`, `database`).
+Scan (ML Kit Document Scanner) → OCR de la colonne « Cott » (ML Kit Text
+Recognition, hors ligne) → écran de validation éditable (ajout/suppression/
+modification, choix du sens de tournée) → sauvegarde automatique en continu
+dans Room, avec reprise réelle depuis l'accueil (« Reprendre la tournée en
+cours »). Le mode Livraison et l'écran de liste restent à construire (voir
+`app/src/main/java/com/delivr/app/`, dossier `ui/`).
 
 ## Ouvrir le projet
 
 1. Ouvrir le dossier dans Android Studio (Ladybug ou plus récent).
 2. Laisser Gradle synchroniser (le wrapper est déjà configuré, Gradle 8.13
-   / AGP 8.13.2 / Kotlin 2.0.21).
+   / AGP 8.13.2 / Kotlin 2.2.21).
 3. Lancer sur un appareil ou émulateur API 26+.
 
 ## Structure
 
 ```
 app/src/main/java/com/delivr/app/
- ├── ui/            écrans Compose (home, scan, ...) + thème
+ ├── DelivrApplication.kt  seul conteneur d'injection du projet (pas de framework)
+ ├── ui/            écrans Compose (home, scan, validation, ...) + thème + fabriques de ViewModel
  ├── navigation/     graphe de navigation
- ├── data/           sources de données (à venir)
- ├── domain/         logique métier (tri, extraction, à venir)
+ ├── data/           inutilisé en V1 (Room fait office de source de données)
+ ├── domain/         logique métier pure (tri, extraction, statuts)
  ├── camera/         lancement du scanner ML Kit (DocumentScanner.kt)
- ├── ocr/            intégration ML Kit Text Recognition (à venir)
- ├── repository/     repositories (à venir)
- ├── database/       Room (à venir)
+ ├── ocr/            intégration ML Kit Text Recognition
+ ├── repository/     RoundRepository (mappe le domaine vers Room)
+ ├── database/       Room (AppDatabase, RoundEntity/CottageEntity, RoundDao)
  └── utils/          utilitaires (chargement d'image, BitmapLoader.kt)
 ```
 
