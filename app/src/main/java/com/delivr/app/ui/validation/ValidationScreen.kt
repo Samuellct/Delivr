@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.delivr.app.R
 import com.delivr.app.domain.SortDirection
 import com.delivr.app.domain.formatCottageNumber
+import com.delivr.app.ui.DelivrViewModelFactories
 
 private const val MIN_COTTAGE_NUMBER = 1
 private const val MAX_COTTAGE_NUMBER = 999
@@ -56,29 +57,35 @@ const val COTTAGE_NUMBER_FIELD_TAG = "cottage_number_field"
 
 /**
  * Point d'entrée de la destination de navigation "validation" : c'est ici
- * qu'est déclenchée l'extraction, sur le modèle de `ScanRoute`/`ScanScreen`
- * (séparation entre le point d'entrée qui orchestre l'effet de bord et
- * l'écran, pur et testable).
+ * qu'est déclenchée l'extraction (ou la reprise), sur le modèle de
+ * `ScanRoute`/`ScanScreen` (séparation entre le point d'entrée qui orchestre
+ * l'effet de bord et l'écran, pur et testable).
+ *
+ * [imagePath] vaut `null` quand on arrive par « Reprendre la tournée en
+ * cours » (route `VALIDATION_RESUME`, voir `NavGraph.kt`) : rien à extraire,
+ * la liste est déjà en base (Phase 5.4).
  */
 @Composable
 fun ValidationRoute(
-    imagePath: String,
+    imagePath: String?,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ValidationViewModel = viewModel(),
+    viewModel: ValidationViewModel = viewModel(factory = DelivrViewModelFactories.validation),
 ) {
+    val start: () -> Unit = { if (imagePath != null) viewModel.extract(imagePath) else viewModel.resume() }
+
     LaunchedEffect(imagePath) {
         // Conditionné à Extracting : après une rotation, un résultat déjà
         // obtenu (Success/Error) est restauré depuis SavedStateHandle et ne
         // doit pas être refait inutilement (voir ValidationViewModel.kt).
         if (viewModel.uiState is ValidationUiState.Extracting) {
-            viewModel.extract(imagePath)
+            start()
         }
     }
 
     ValidationScreen(
         uiState = viewModel.uiState,
-        onRetry = { viewModel.extract(imagePath) },
+        onRetry = start,
         onBack = onBack,
         onAdd = viewModel::onAddCottage,
         onRemove = viewModel::onRemoveCottage,
@@ -140,6 +147,7 @@ private fun ValidationError.toDisplayMessage(): String =
         ValidationError.ImageUnreadable -> stringResource(R.string.validation_error_image_unreadable)
         ValidationError.HeaderNotFound -> stringResource(R.string.validation_error_header_not_found)
         ValidationError.NoNumbersFound -> stringResource(R.string.validation_error_no_numbers_found)
+        ValidationError.RoundUnavailable -> stringResource(R.string.validation_error_round_unavailable)
     }
 
 @Composable

@@ -32,6 +32,7 @@
     <string name="validation_error_image_unreadable">Impossible de relire l\'image scannée.</string>
     <string name="validation_error_header_not_found">Impossible de repérer la colonne « Cott » sur ce scan.</string>
     <string name="validation_error_no_numbers_found">Aucun numéro de cottage n\'a été détecté.</string>
+    <string name="validation_error_round_unavailable">Aucune tournée en cours à reprendre.</string>
 
     <string name="action_cancel">Annuler</string>
 

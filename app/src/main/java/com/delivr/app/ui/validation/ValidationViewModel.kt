@@ -14,6 +14,7 @@ import com.delivr.app.domain.removeCottageNumber
 import com.delivr.app.domain.sortCottageNumbers
 import com.delivr.app.domain.updateCottageNumber
 import com.delivr.app.ocr.recognizeText
+import com.delivr.app.repository.RoundRepository
 import com.delivr.app.utils.loadFullResolutionBitmap
 import kotlinx.coroutines.launch
 
@@ -29,6 +30,9 @@ sealed interface ValidationError {
     data object HeaderNotFound : ValidationError
 
     data object NoNumbersFound : ValidationError
+
+    /** Le bouton « Reprendre » a été tapé mais la base ne contient plus de tournée (Phase 5.4). */
+    data object RoundUnavailable : ValidationError
 }
 
 /**
@@ -68,6 +72,7 @@ private const val KIND_ERROR = "error"
 private const val ERROR_IMAGE_UNREADABLE = "image_unreadable"
 private const val ERROR_HEADER_NOT_FOUND = "header_not_found"
 private const val ERROR_NO_NUMBERS_FOUND = "no_numbers_found"
+private const val ERROR_ROUND_UNAVAILABLE = "round_unavailable"
 
 private const val SORT_ASCENDING = "asc"
 private const val SORT_DESCENDING = "desc"
@@ -86,12 +91,14 @@ private fun ValidationError.toSavedKind(): String =
         ValidationError.ImageUnreadable -> ERROR_IMAGE_UNREADABLE
         ValidationError.HeaderNotFound -> ERROR_HEADER_NOT_FOUND
         ValidationError.NoNumbersFound -> ERROR_NO_NUMBERS_FOUND
+        ValidationError.RoundUnavailable -> ERROR_ROUND_UNAVAILABLE
     }
 
 private fun restoreValidationError(kind: String?): ValidationError =
     when (kind) {
         ERROR_HEADER_NOT_FOUND -> ValidationError.HeaderNotFound
         ERROR_NO_NUMBERS_FOUND -> ValidationError.NoNumbersFound
+        ERROR_ROUND_UNAVAILABLE -> ValidationError.RoundUnavailable
         else -> ValidationError.ImageUnreadable
     }
 
@@ -154,10 +161,14 @@ private fun persistUiState(
  * couches, comme `ScanViewModel` orchestre `camera/` sans connaître le SDK.
  *
  * [uiState] est répliqué dans [SavedStateHandle] pour survivre aux
- * changements de configuration et à la mort du process.
+ * changements de configuration et à la mort du process ; [repository]
+ * réplique en plus la tournée dans Room (Phase 5) pour survivre à la
+ * fermeture réelle de l'app — les deux mécanismes coexistent sans se
+ * contredire, alimentés par le même instantané d'état.
  */
 class ValidationViewModel(
     private val savedStateHandle: SavedStateHandle,
+    private val repository: RoundRepository,
 ) : ViewModel() {
     var uiState: ValidationUiState by mutableStateOf(restoreUiState(savedStateHandle))
         private set
@@ -173,11 +184,42 @@ class ValidationViewModel(
 
             val elements = recognizeText(bitmap)
             val result = extractCottageNumbers(elements, imageWidthPx = bitmap.width)
-            applyUiState(
+            val newState =
                 when (result) {
                     is ExtractionResult.Success -> ValidationUiState.Success(result.cottageNumbers)
                     ExtractionResult.HeaderNotFound -> ValidationUiState.Error(ValidationError.HeaderNotFound)
                     ExtractionResult.NoNumbersFound -> ValidationUiState.Error(ValidationError.NoNumbersFound)
+                }
+            applyUiState(newState)
+            // La tournée naît en base dès que l'OCR réussit (TODO_V1.md 5.3) :
+            // à partir d'ici, « Reprendre la tournée en cours » fonctionne,
+            // même si l'utilisateur tue l'app avant d'avoir touché à la
+            // liste. Corollaire assumé : c'est aussi ici, et pas au tap sur
+            // « Nouvelle tournée », que l'ancienne tournée est écrasée — un
+            // scan annulé ou un OCR raté laisse donc la tournée précédente
+            // intacte et reprenable.
+            if (newState is ValidationUiState.Success) {
+                repository.startRound(newState.cottageNumbers, newState.sortDirection)
+            }
+        }
+    }
+
+    /**
+     * Point d'entrée de « Reprendre la tournée en cours » : recharge la
+     * liste depuis Room au lieu de refaire tourner l'OCR (l'image scannée
+     * peut même ne plus exister). Réutilise volontairement l'état
+     * `Extracting` comme état d'attente : la lecture prend quelques
+     * millisecondes, ça ne justifie pas un quatrième état.
+     */
+    fun resume() {
+        applyUiState(ValidationUiState.Extracting)
+        viewModelScope.launch {
+            val saved = repository.loadRound()
+            applyUiState(
+                if (saved == null) {
+                    ValidationUiState.Error(ValidationError.RoundUnavailable)
+                } else {
+                    ValidationUiState.Success(saved.cottageNumbers, saved.sortDirection)
                 },
             )
         }
@@ -200,7 +242,7 @@ class ValidationViewModel(
 
     fun onSortDirectionChange(direction: SortDirection) {
         val current = uiState as? ValidationUiState.Success ?: return
-        applyUiState(
+        applyAndSave(
             current.copy(
                 cottageNumbers = sortCottageNumbers(current.cottageNumbers, direction),
                 sortDirection = direction,
@@ -210,7 +252,18 @@ class ValidationViewModel(
 
     private inline fun updateSuccessState(newNumbers: (ValidationUiState.Success) -> List<Int>) {
         val current = uiState as? ValidationUiState.Success ?: return
-        applyUiState(current.copy(cottageNumbers = newNumbers(current)))
+        applyAndSave(current.copy(cottageNumbers = newNumbers(current)))
+    }
+
+    /**
+     * Sauvegarde automatique en continu (TODO_V1.md 5.3) : l'UI est mise à
+     * jour immédiatement (synchrone, via [applyUiState]), l'écriture Room
+     * part en tâche de fond. L'ordre des écritures concurrentes est garanti
+     * par le mutex de [RoundRepository], pas par [viewModelScope].
+     */
+    private fun applyAndSave(state: ValidationUiState.Success) {
+        applyUiState(state)
+        viewModelScope.launch { repository.updateRound(state.cottageNumbers, state.sortDirection) }
     }
 
     private fun applyUiState(state: ValidationUiState) {
