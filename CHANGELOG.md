@@ -1,4 +1,14 @@
 
+## [v0.2.1] - 2026-08-08
+### [0.2.1](https://github.com/Samuellct/Delivr/compare/v0.2.0...v0.2.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* corrige un chevauchement de glyphes dans la fixture + assouplit le test bout en bout (Phase 3.6) ([6bda54d](https://github.com/Samuellct/Delivr/commit/6bda54d6629cae109ae389c5db71701f46a985a8))
+
+
+
 ## [v0.2.0] - 2026-08-08
 ## [0.2.0](https://github.com/Samuellct/Delivr/compare/v0.1.0...v0.2.0) (2026-08-08)
 
