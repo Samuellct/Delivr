@@ -10,6 +10,7 @@ import com.delivr.app.R
 import com.delivr.app.camera.ScanError
 import com.delivr.app.camera.ScanOutcome
 import com.delivr.app.ui.theme.DelivrTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,10 +29,16 @@ class ScanScreenTest {
     private fun setScanScreen(
         viewModel: ScanViewModel,
         startScan: () -> Unit = {},
+        onContinue: (imagePath: String) -> Unit = {},
     ) {
         composeTestRule.setContent {
             DelivrTheme {
-                ScanScreen(onBack = {}, startScan = startScan, viewModel = viewModel)
+                ScanScreen(
+                    onBack = {},
+                    onContinue = onContinue,
+                    startScan = startScan,
+                    viewModel = viewModel,
+                )
             }
         }
     }
@@ -56,7 +63,21 @@ class ScanScreenTest {
         val context = composeTestRule.activity
         composeTestRule.onNodeWithText(context.getString(R.string.scan_success_title)).assertExists()
         composeTestRule.onNodeWithText(context.getString(R.string.scan_rescan_button)).assertExists()
+        composeTestRule.onNodeWithText(context.getString(R.string.scan_continue_button)).assertExists()
         composeTestRule.onNodeWithText(context.getString(R.string.action_back_to_home)).assertExists()
+    }
+
+    @Test
+    fun tap_sur_continuer_transmet_le_chemin_de_l_image_scannee() {
+        val viewModel = ScanViewModel(SavedStateHandle())
+        var receivedImagePath: String? = null
+        setScanScreen(viewModel, onContinue = { imagePath -> receivedImagePath = imagePath })
+        viewModel.onScanOutcome(ScanOutcome.Success("/tmp/inexistant.jpg"))
+
+        val context = composeTestRule.activity
+        composeTestRule.onNodeWithText(context.getString(R.string.scan_continue_button)).performClick()
+
+        assertEquals("/tmp/inexistant.jpg", receivedImagePath)
     }
 
     @Test
