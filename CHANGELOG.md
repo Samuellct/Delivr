@@ -1,4 +1,14 @@
 
+## [v0.3.1] - 2026-08-08
+### [0.3.1](https://github.com/Samuellct/Delivr/compare/v0.3.0...v0.3.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* corrige un avertissement lint UnrememberedMutableState dans le test ([4a7e024](https://github.com/Samuellct/Delivr/commit/4a7e02433bcc11a3b2bf72e53f2dc5c87a34baed))
+
+
+
 ## [v0.3.0] - 2026-08-08
 ## [0.3.0](https://github.com/Samuellct/Delivr/compare/v0.2.1...v0.3.0) (2026-08-08)
 
