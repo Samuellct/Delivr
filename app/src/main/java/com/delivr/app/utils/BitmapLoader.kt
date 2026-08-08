@@ -51,6 +51,26 @@ internal fun calculateInSampleSize(
 }
 
 /**
+ * Corrige l'orientation d'un [Bitmap] fraîchement décodé depuis [path] selon
+ * son tag EXIF (`ExifInterface.rotationDegrees`). Partagée entre
+ * [loadDownsampledBitmap] (aperçu) et [loadFullResolutionBitmap] (OCR,
+ * Phase 3) — les deux décodent le même fichier et doivent appliquer la même
+ * correction.
+ */
+private fun applyExifRotation(
+    bitmap: Bitmap,
+    path: String,
+): Bitmap {
+    val rotationDegrees = runCatching { ExifInterface(path).rotationDegrees }.getOrDefault(0)
+    return if (rotationDegrees != 0) {
+        val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
+        Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    } else {
+        bitmap
+    }
+}
+
+/**
  * Charge un [Bitmap] depuis un fichier sur le disque (typiquement la copie
  * interne du scan, voir `camera/DocumentScanner.kt`), sous-échantillonné
  * pour tenir dans `reqWidth`Ã—`reqHeight` et corrigé de son orientation EXIF.
@@ -61,7 +81,8 @@ internal fun calculateInSampleSize(
  *
  * **Important** : ce sous-échantillonnage ne modifie que le [Bitmap] tenu en
  * mémoire pour l'aperçu ; le fichier source sur le disque n'est jamais
- * modifié ni réécrit, il reste en pleine résolution pour l'OCR (Phase 3).
+ * modifié ni réécrit, il reste en pleine résolution pour l'OCR (Phase 3,
+ * voir [loadFullResolutionBitmap]).
  */
 suspend fun loadDownsampledBitmap(
     path: String,
@@ -84,16 +105,23 @@ suspend fun loadDownsampledBitmap(
                 BitmapFactory.decodeFile(path, options)
                     ?: return@withContext ImageLoadState.Failed
 
-            val rotationDegrees = runCatching { ExifInterface(path).rotationDegrees }.getOrDefault(0)
-            val oriented =
-                if (rotationDegrees != 0) {
-                    val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
-                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-                } else {
-                    bitmap
-                }
-            ImageLoadState.Loaded(oriented)
+            ImageLoadState.Loaded(applyExifRotation(bitmap, path))
         }.getOrDefault(ImageLoadState.Failed)
+    }
+
+/**
+ * Charge un [Bitmap] en pleine résolution (pas de sous-échantillonnage),
+ * corrigé de son orientation EXIF — destiné à la reconnaissance de texte
+ * (`ocr/TextRecognizer.kt`), qui a besoin de la meilleure résolution
+ * disponible pour lire correctement de petits chiffres imprimés.
+ * Retourne `null` en cas d'échec de décodage (fichier illisible/corrompu).
+ */
+suspend fun loadFullResolutionBitmap(path: String): Bitmap? =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            val bitmap = BitmapFactory.decodeFile(path) ?: return@withContext null
+            applyExifRotation(bitmap, path)
+        }.getOrNull()
     }
 
 /**
