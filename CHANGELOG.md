@@ -1,4 +1,14 @@
 
+## [v0.5.2] - 2026-08-09
+### [0.5.2](https://github.com/Samuellct/Delivr/compare/v0.5.1...v0.5.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **delivery:** agrandit le numéro de cottage et les boutons Livré/Annulé ([e869c22](https://github.com/Samuellct/Delivr/commit/e869c22ae46c552e0f23c0f94227108c8433ce97))
+
+
+
 ## [v0.5.1] - 2026-08-09
 ### [0.5.1](https://github.com/Samuellct/Delivr/compare/v0.5.0...v0.5.1) (2026-08-09)
 
