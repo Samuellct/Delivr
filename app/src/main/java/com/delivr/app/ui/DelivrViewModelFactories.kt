@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delivr.app.DelivrApplication
+import com.delivr.app.ui.delivery.DeliveryViewModel
 import com.delivr.app.ui.home.HomeViewModel
 import com.delivr.app.ui.validation.ValidationViewModel
 
@@ -39,6 +40,16 @@ object DelivrViewModelFactories {
                     repository = delivrApplication().roundRepository,
                 )
             }
+        }
+
+    /**
+     * Pas de `createSavedStateHandle()` ici : `DeliveryViewModel` n'en a pas
+     * besoin (voir son KDoc — Room est déjà la source de vérité de la
+     * progression, contrairement à l'extraction OCR de `ValidationViewModel`).
+     */
+    val delivery: ViewModelProvider.Factory =
+        viewModelFactory {
+            initializer { DeliveryViewModel(repository = delivrApplication().roundRepository) }
         }
 }
 
