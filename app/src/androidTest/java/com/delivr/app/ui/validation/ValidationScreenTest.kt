@@ -56,6 +56,7 @@ class ValidationScreenTest {
                     uiState = uiState,
                     onRetry = {},
                     onBack = {},
+                    onStartDelivery = {},
                     onAdd = { number ->
                         val current = uiState as ValidationUiState.Success
                         uiState = current.copy(cottageNumbers = addCottageNumber(current.cottageNumbers, number, current.sortDirection))

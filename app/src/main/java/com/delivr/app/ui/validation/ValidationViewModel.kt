@@ -31,7 +31,12 @@ sealed interface ValidationError {
 
     data object NoNumbersFound : ValidationError
 
-    /** Le bouton « Reprendre » a été tapé mais la base ne contient plus de tournée (Phase 5.4). */
+    /**
+     * Le bouton « Reprendre » menait ici jusqu'en Phase 5.4. Depuis la
+     * Phase 6, il mène directement au mode Livraison : plus aucune route de
+     * navigation n'atteint ce cas. Conservé parce que [ValidationViewModel.resume]
+     * l'est (voir son KDoc).
+     */
     data object RoundUnavailable : ValidationError
 }
 
@@ -205,11 +210,16 @@ class ValidationViewModel(
     }
 
     /**
-     * Point d'entrée de « Reprendre la tournée en cours » : recharge la
-     * liste depuis Room au lieu de refaire tourner l'OCR (l'image scannée
-     * peut même ne plus exister). Réutilise volontairement l'état
-     * `Extracting` comme état d'attente : la lecture prend quelques
-     * millisecondes, ça ne justifie pas un quatrième état.
+     * Recharge la liste depuis Room au lieu de refaire tourner l'OCR.
+     *
+     * **Plus branché sur aucune route de navigation depuis la Phase 6** : la
+     * reprise d'une tournée mène désormais directement au mode Livraison
+     * (`Routes.DELIVERY`). Volontairement conservé plutôt que supprimé —
+     * c'est le seul chemin par lequel `ValidationViewModelTest` peut amener
+     * ce ViewModel dans l'état `Success` en JVM pure (donc en CI), [extract]
+     * exigeant un décodage bitmap et ML Kit, tous deux indisponibles hors
+     * appareil. Supprimer cette méthode coûterait la couverture automatisée
+     * des quatre méthodes de mutation de la Phase 4.
      */
     fun resume() {
         applyUiState(ValidationUiState.Extracting)

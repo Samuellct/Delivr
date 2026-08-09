@@ -21,12 +21,12 @@ object Routes {
     fun validation(imagePath: String) = "validation/${Uri.encode(imagePath)}"
 
     /**
-     * Reprise de la tournée sauvegardée (Phase 5.4) : même écran que
-     * [VALIDATION], mais sans argument `imagePath` — il n'y a rien à
-     * extraire, la liste vient de Room. Route distincte plutôt qu'un
-     * argument optionnel : chacune a sa propre entrée de pile (donc son
-     * propre ViewModel/SavedStateHandle), et le graphe dit explicitement
-     * lequel des deux chemins a été pris.
+     * Mode Livraison (Phase 6). Sans argument : la tournée est toujours
+     * relue depuis Room, qu'on arrive depuis l'écran de validation
+     * (« Démarrer la tournée ») ou depuis l'accueil (« Reprendre la tournée
+     * en cours »). Remplace la route `VALIDATION_RESUME` de la Phase 5.4 :
+     * « Reprendre » ramène désormais directement au cottage courant, pas à
+     * la liste à valider.
      */
-    const val VALIDATION_RESUME = "validation_resume"
+    const val DELIVERY = "delivery"
 }

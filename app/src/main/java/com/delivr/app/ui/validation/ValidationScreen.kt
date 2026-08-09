@@ -57,36 +57,37 @@ const val COTTAGE_NUMBER_FIELD_TAG = "cottage_number_field"
 
 /**
  * Point d'entrée de la destination de navigation "validation" : c'est ici
- * qu'est déclenchée l'extraction (ou la reprise), sur le modèle de
- * `ScanRoute`/`ScanScreen` (séparation entre le point d'entrée qui orchestre
- * l'effet de bord et l'écran, pur et testable).
+ * qu'est déclenchée l'extraction, sur le modèle de `ScanRoute`/`ScanScreen`
+ * (séparation entre le point d'entrée qui orchestre l'effet de bord et
+ * l'écran, pur et testable).
  *
- * [imagePath] vaut `null` quand on arrive par « Reprendre la tournée en
- * cours » (route `VALIDATION_RESUME`, voir `NavGraph.kt`) : rien à extraire,
- * la liste est déjà en base (Phase 5.4).
+ * [imagePath] est redevenu non nullable en Phase 6 : il n'existe plus qu'un
+ * seul chemin vers cet écran (un scan qui vient d'aboutir). La reprise d'une
+ * tournée sauvegardée mène désormais directement au mode Livraison
+ * (`Routes.DELIVERY`), pas ici.
  */
 @Composable
 fun ValidationRoute(
-    imagePath: String?,
+    imagePath: String,
     onBack: () -> Unit,
+    onStartDelivery: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ValidationViewModel = viewModel(factory = DelivrViewModelFactories.validation),
 ) {
-    val start: () -> Unit = { if (imagePath != null) viewModel.extract(imagePath) else viewModel.resume() }
-
     LaunchedEffect(imagePath) {
         // Conditionné à Extracting : après une rotation, un résultat déjà
         // obtenu (Success/Error) est restauré depuis SavedStateHandle et ne
         // doit pas être refait inutilement (voir ValidationViewModel.kt).
         if (viewModel.uiState is ValidationUiState.Extracting) {
-            start()
+            viewModel.extract(imagePath)
         }
     }
 
     ValidationScreen(
         uiState = viewModel.uiState,
-        onRetry = start,
+        onRetry = { viewModel.extract(imagePath) },
         onBack = onBack,
+        onStartDelivery = onStartDelivery,
         onAdd = viewModel::onAddCottage,
         onRemove = viewModel::onRemoveCottage,
         onUpdate = viewModel::onUpdateCottage,
@@ -110,6 +111,7 @@ fun ValidationScreen(
     uiState: ValidationUiState,
     onRetry: () -> Unit,
     onBack: () -> Unit,
+    onStartDelivery: () -> Unit,
     onAdd: (Int) -> Unit,
     onRemove: (Int) -> Unit,
     onUpdate: (oldNumber: Int, newNumber: Int) -> Unit,
@@ -125,6 +127,7 @@ fun ValidationScreen(
                     cottageNumbers = uiState.cottageNumbers,
                     sortDirection = uiState.sortDirection,
                     onBack = onBack,
+                    onStartDelivery = onStartDelivery,
                     onAdd = onAdd,
                     onRemove = onRemove,
                     onUpdate = onUpdate,
@@ -177,6 +180,7 @@ private fun ValidationResult(
     cottageNumbers: List<Int>,
     sortDirection: SortDirection,
     onBack: () -> Unit,
+    onStartDelivery: () -> Unit,
     onAdd: (Int) -> Unit,
     onRemove: (Int) -> Unit,
     onUpdate: (oldNumber: Int, newNumber: Int) -> Unit,
@@ -191,7 +195,8 @@ private fun ValidationResult(
                 Modifier
                     .fillMaxSize()
                     // Marge basse généreuse : le bouton flottant d'ajout ne
-                    // doit pas recouvrir "Retour à l'accueil".
+                    // doit pas recouvrir les deux boutons du bas
+                    // (« Démarrer la tournée » et « Retour à l'accueil »).
                     .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
         ) {
             Text(stringResource(R.string.validation_title), style = MaterialTheme.typography.titleLarge)
@@ -232,6 +237,12 @@ private fun ValidationResult(
             }
 
             Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onStartDelivery,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+            ) {
+                Text(stringResource(R.string.validation_start_delivery_button))
+            }
             TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.action_back_to_home))
             }
