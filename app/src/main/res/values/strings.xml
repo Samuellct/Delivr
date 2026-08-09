@@ -48,4 +48,19 @@
     <string name="validation_error_duplicate">Ce numéro existe déjà dans la liste.</string>
     <string name="validation_delete_content_description">Supprimer le cottage %s</string>
     <string name="validation_add_fab_content_description">Ajouter un cottage</string>
+    <string name="validation_start_delivery_button">Démarrer la tournée</string>
+
+    <string name="delivery_cottage_label">Cottage</string>
+    <string name="delivery_position">%1$d / %2$d</string>
+    <string name="delivery_finished_message">Tournée terminée</string>
+    <string name="delivery_loading_message">Chargement de la tournée…</string>
+
+    <string name="delivery_error_title">Livraison impossible</string>
+    <string name="delivery_error_round_unavailable">Aucune tournée en cours. Reviens à l\'accueil pour en démarrer une.</string>
+
+    <string name="delivery_delivered_content_description">Marquer ce cottage comme livré</string>
+    <string name="delivery_previous_content_description">Revenir au cottage précédent</string>
+    <string name="delivery_list_content_description">Voir la liste des cottages</string>
+    <string name="delivery_cancelled_content_description">Marquer ce cottage comme annulé</string>
+    <string name="delivery_cancelled_long_click_label">Annuler ce cottage (appui long)</string>
 </resources>
