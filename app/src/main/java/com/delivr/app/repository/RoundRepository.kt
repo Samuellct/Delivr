@@ -3,16 +3,31 @@ package com.delivr.app.repository
 import com.delivr.app.database.CottageEntity
 import com.delivr.app.database.RoundDao
 import com.delivr.app.database.RoundEntity
+import com.delivr.app.domain.Cottage
+import com.delivr.app.domain.CottageStatus
 import com.delivr.app.domain.SortDirection
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** Tournée relue depuis Room, exprimée dans le vocabulaire du domaine. */
+/**
+ * Tournée relue depuis Room, exprimée dans le vocabulaire du domaine.
+ *
+ * [cottages] porte le statut de chaque cottage depuis la Phase 6 : c'est ce
+ * dont le mode Livraison a besoin pour retrouver la position courante (voir
+ * `domain/DeliveryProgress.kt`).
+ */
 data class SavedRound(
-    val cottageNumbers: List<Int>,
+    val cottages: List<Cottage>,
     val sortDirection: SortDirection,
     val createdAt: Long,
-)
+) {
+    /**
+     * Vue « numéros seuls », dérivée et non stockée : c'est tout ce dont
+     * l'écran de validation a besoin (il ignore les statuts) — évite de
+     * dupliquer une information déjà portée par [cottages].
+     */
+    val cottageNumbers: List<Int> get() = cottages.map { it.number }
+}
 
 /**
  * Traduit entre le vocabulaire du domaine (`List<Int>` + [SortDirection],
@@ -42,7 +57,7 @@ class RoundRepository(
         val cottages = roundDao.selectCottages()
         if (cottages.isEmpty()) return null
         return SavedRound(
-            cottageNumbers = cottages.map { it.number },
+            cottages = cottages.map { Cottage(number = it.number, status = it.status) },
             sortDirection = round.sortDirection,
             createdAt = round.createdAt,
         )
@@ -71,6 +86,29 @@ class RoundRepository(
             cottages = cottageNumbers.toEntities(),
         )
     }
+
+    /**
+     * Changement de statut d'un seul cottage (mode Livraison, Phase 6).
+     * Contrairement à [startRound]/[updateRound], qui réécrivent la liste
+     * entière, c'est un `UPDATE` d'une seule ligne : rien d'autre ne bouge,
+     * donc les positions et l'horodatage sont intouchés.
+     *
+     * Passe malgré tout par [writeMutex], comme toutes les écritures du
+     * repository : le mode Livraison et l'écran de validation ne sont
+     * jamais affichés en même temps (un seul écran vivant à la fois dans le
+     * NavHost), mais deux gestes rapprochés en Livraison lancent bien deux
+     * coroutines distinctes, et la discipline « toute écriture passe par le
+     * mutex » évite d'avoir à re-démontrer l'innocuité à chaque nouvel
+     * appelant.
+     *
+     * Rend `true` si une ligne a été mise à jour ; `false` signale un
+     * numéro absent de la tournée (ne devrait pas arriver — l'appelant
+     * travaille sur une liste relue de la base).
+     */
+    suspend fun updateCottageStatus(
+        number: Int,
+        status: CottageStatus,
+    ): Boolean = writeMutex.withLock { roundDao.updateStatus(number = number, status = status) > 0 }
 
     suspend fun clearRound() = writeMutex.withLock { roundDao.clearRound() }
 }

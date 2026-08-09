@@ -159,4 +159,86 @@ class RoundRepositoryTest {
             assertEquals(listOf(3, 35), saved?.cottageNumbers)
             assertEquals(SortDirection.DESCENDING, saved?.sortDirection)
         }
+
+    @Test
+    fun `loadRound reflete le statut par defaut A_FAIRE de chaque cottage`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35), SortDirection.ASCENDING)
+
+            val saved = repository.loadRound()
+
+            assertEquals(listOf(CottageStatus.A_FAIRE, CottageStatus.A_FAIRE), saved?.cottages?.map { it.status })
+        }
+
+    @Test
+    fun `updateCottageStatus change uniquement le cottage vise`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 78), SortDirection.ASCENDING)
+
+            val updated = repository.updateCottageStatus(35, CottageStatus.LIVRE)
+
+            assertTrue(updated)
+            val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(3))
+            assertEquals(CottageStatus.LIVRE, statuses?.get(35))
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(78))
+        }
+
+    @Test
+    fun `updateCottageStatus sur un numero absent rend false et ne change rien`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35), SortDirection.ASCENDING)
+
+            val updated = repository.updateCottageStatus(999, CottageStatus.LIVRE)
+
+            assertFalse(updated)
+            val statuses = repository.loadRound()?.cottages?.map { it.status }
+            assertEquals(listOf(CottageStatus.A_FAIRE, CottageStatus.A_FAIRE), statuses)
+        }
+
+    @Test
+    fun `updateCottageStatus ne touche ni l'ordre ni l'horodatage`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 78), SortDirection.ASCENDING, createdAtMillis = 1_000L)
+
+            repository.updateCottageStatus(35, CottageStatus.ANNULE)
+
+            val saved = repository.loadRound()
+            assertEquals(listOf(3, 35, 78), saved?.cottageNumbers)
+            assertEquals(1_000L, saved?.createdAt)
+        }
+
+    @Test
+    fun `un statut acquis via updateCottageStatus survit a un updateRound qui suit`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35), SortDirection.ASCENDING)
+            repository.updateCottageStatus(35, CottageStatus.LIVRE)
+
+            repository.updateRound(listOf(3, 35, 78), SortDirection.ASCENDING)
+
+            val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
+            assertEquals(CottageStatus.LIVRE, statuses?.get(35))
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(78))
+        }
+
+    @Test
+    fun `deux updateCottageStatus concurrents n'en perdent aucun`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35), SortDirection.ASCENDING)
+
+            val first = launch { repository.updateCottageStatus(3, CottageStatus.LIVRE) }
+            val second = launch { repository.updateCottageStatus(35, CottageStatus.ANNULE) }
+            first.join()
+            second.join()
+
+            val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
+            assertEquals(CottageStatus.LIVRE, statuses?.get(3))
+            assertEquals(CottageStatus.ANNULE, statuses?.get(35))
+        }
 }
