@@ -1,4 +1,14 @@
 
+## [v0.5.1] - 2026-08-09
+### [0.5.1](https://github.com/Samuellct/Delivr/compare/v0.5.0...v0.5.1) (2026-08-09)
+
+
+### Documentation
+
+* documente le mode Livraison dans le README ([e4ec63b](https://github.com/Samuellct/Delivr/commit/e4ec63b89c59b49fa43ab30e843ac5c9240b2382))
+
+
+
 ## [v0.5.0] - 2026-08-09
 ## [0.5.0](https://github.com/Samuellct/Delivr/compare/v0.4.0...v0.5.0) (2026-08-09)
 
