@@ -23,8 +23,10 @@ cottage par cottage.
 Scan (ML Kit Document Scanner) → OCR de la colonne « Cott » (ML Kit Text
 Recognition, hors ligne) → écran de validation éditable (ajout/suppression/
 modification, choix du sens de tournée) → sauvegarde automatique en continu
-dans Room, avec reprise réelle depuis l'accueil (« Reprendre la tournée en
-cours »). Le mode Livraison et l'écran de liste restent à construire (voir
+dans Room → mode Livraison (numéro de cottage courant + position, icônes
+Livré/Retour/Liste/Annulé, appui long requis pour annuler). « Reprendre la
+tournée en cours » depuis l'accueil ramène directement au cottage courant.
+Seul l'écran Liste (Phase 7) reste à construire (voir
 `app/src/main/java/com/delivr/app/`, dossier `ui/`).
 
 ## Ouvrir le projet
