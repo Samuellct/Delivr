@@ -1,4 +1,23 @@
 
+## [v0.5.0] - 2026-08-09
+## [0.5.0](https://github.com/Samuellct/Delivr/compare/v0.4.0...v0.5.0) (2026-08-09)
+
+
+### Features
+
+* **delivery:** DeliveryViewModel pilote le mode Livraison ([c8ff34a](https://github.com/Samuellct/Delivr/commit/c8ff34ad814ace9d5d87fd9c3cfb6502963c3ec1))
+* **delivery:** écran du mode Livraison, 4 icônes dans les coins ([bb54d2e](https://github.com/Samuellct/Delivr/commit/bb54d2eaa555c49464521dbe35d1dc13cd8e8f00))
+* **domain:** logique pure de position en mode Livraison ([1251a04](https://github.com/Samuellct/Delivr/commit/1251a04713d34c5c2e8c2618f4c906cb3087aad2))
+* **navigation:** démarre et reprend la tournée en mode Livraison ([c062528](https://github.com/Samuellct/Delivr/commit/c0625286651233ec653299551d3709084bd16b0e))
+* **repository:** expose le statut par cottage et son écriture ciblée ([57a4f23](https://github.com/Samuellct/Delivr/commit/57a4f2375cfb3d398ea5d3c2382c19c5ee660eda))
+
+
+### Tests
+
+* **delivery:** tests Compose UI du mode Livraison ([d45986a](https://github.com/Samuellct/Delivr/commit/d45986a56cb71c80a05a9175f93e7c4bdecec57c))
+
+
+
 ## [v0.4.0] - 2026-08-08
 ## [0.4.0](https://github.com/Samuellct/Delivr/compare/v0.3.1...v0.4.0) (2026-08-08)
 
