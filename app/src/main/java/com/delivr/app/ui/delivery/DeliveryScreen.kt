@@ -30,12 +30,24 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.delivr.app.R
 import com.delivr.app.domain.formatCottageNumber
 import com.delivr.app.ui.DelivrViewModelFactories
+
+/**
+ * Taille des deux commandes principales (Livré/Annulé) : nettement plus
+ * grande que la cible tactile minimale de 48.dp — ce sont les gestes les
+ * plus fréquents du mode Livraison (un par cottage), donc ceux dont le
+ * confort compte le plus. Retour/Liste restent à la taille par défaut
+ * (`IconButton`) : gestes secondaires, moins fréquents.
+ */
+private val PRIMARY_ACTION_SIZE = 72.dp
+private val PRIMARY_ACTION_ICON_SIZE = 40.dp
 
 /**
  * Point d'entrée de la destination « livraison » (Phase 6), sur le modèle de
@@ -168,7 +180,11 @@ private fun DeliveryInProgress(
             } else {
                 Text(
                     formatCottageNumber(current.number),
-                    style = MaterialTheme.typography.displayLarge,
+                    // Nettement plus grand que displayLarge (57.sp) : le
+                    // numéro doit être lisible d'un coup d'œil, à bout de
+                    // bras (Presentation.md § Mode Livraison, retour
+                    // utilisateur Phase 6).
+                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 110.sp, fontWeight = FontWeight.Bold),
                 )
             }
 
@@ -212,11 +228,12 @@ private fun DeliveryInProgress(
             // contentColor suffit : IconButtonDefaults en dérive tout seul
             // la couleur désactivée (même teinte à 38 % d'opacité).
             colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.tertiary),
-            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp).size(PRIMARY_ACTION_SIZE),
         ) {
             Icon(
                 Icons.Default.Check,
                 contentDescription = stringResource(R.string.delivery_delivered_content_description),
+                modifier = Modifier.size(PRIMARY_ACTION_ICON_SIZE),
             )
         }
 
@@ -243,6 +260,11 @@ private fun DeliveryInProgress(
  *
  * Double étiquetage volontaire pour TalkBack : la description de l'icône dit
  * ce que c'est, `onLongClickLabel` dit ce que fait l'appui long.
+ *
+ * Taille alignée sur [PRIMARY_ACTION_SIZE] (au lieu de la cible tactile
+ * minimale de 48.dp) : même confort d'usage que le bouton Livré, sur
+ * lequel un retour utilisateur a demandé plus de place pour les deux
+ * commandes principales.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -258,7 +280,7 @@ private fun CancelControl(
     Box(
         modifier =
             modifier
-                .size(48.dp)
+                .size(PRIMARY_ACTION_SIZE)
                 .combinedClickable(
                     enabled = enabled,
                     role = Role.Button,
@@ -275,6 +297,7 @@ private fun CancelControl(
             Icons.Default.Close,
             contentDescription = stringResource(R.string.delivery_cancelled_content_description),
             tint = if (enabled) errorColor else errorColor.copy(alpha = 0.38f),
+            modifier = Modifier.size(PRIMARY_ACTION_ICON_SIZE),
         )
     }
 }
