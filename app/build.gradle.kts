@@ -57,12 +57,12 @@ val resolvedVersionCode = (project.findProperty("delivrVersionCode") as String?)
 
 android {
     namespace = "com.delivr.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.delivr.app"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = resolvedVersionCode
         versionName = resolvedVersionName
 
