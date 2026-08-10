@@ -1,4 +1,14 @@
 
+## [v0.6.6] - 2026-08-10
+### [0.6.6](https://github.com/Samuellct/Delivr/compare/v0.6.5...v0.6.6) (2026-08-10)
+
+
+### Build Systems
+
+* met à jour le Compose BOM ([efd760a](https://github.com/Samuellct/Delivr/commit/efd760a0a998069d71cfc87d40c396335d4f63a2))
+
+
+
 ## [v0.6.5] - 2026-08-10
 ### [0.6.5](https://github.com/Samuellct/Delivr/compare/v0.6.4...v0.6.5) (2026-08-10)
 
