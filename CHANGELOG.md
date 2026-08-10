@@ -1,4 +1,14 @@
 
+## [v0.6.3] - 2026-08-10
+### [0.6.3](https://github.com/Samuellct/Delivr/compare/v0.6.2...v0.6.3) (2026-08-10)
+
+
+### Build Systems
+
+* installe les builds debug et release côte à côte ([ce1c1ff](https://github.com/Samuellct/Delivr/commit/ce1c1fff25b96a63149959d3c8d256d485843b2e))
+
+
+
 ## [v0.6.2] - 2026-08-10
 ### [0.6.2](https://github.com/Samuellct/Delivr/compare/v0.6.1...v0.6.2) (2026-08-10)
 
