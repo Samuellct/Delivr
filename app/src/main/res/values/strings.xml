@@ -63,4 +63,13 @@
     <string name="delivery_list_content_description">Voir la liste des cottages</string>
     <string name="delivery_cancelled_content_description">Marquer ce cottage comme annulé</string>
     <string name="delivery_cancelled_long_click_label">Annuler ce cottage (appui long)</string>
+
+    <string name="list_title">Liste des cottages</string>
+    <string name="list_back_content_description">Retour au mode livraison</string>
+    <string name="list_loading_message">Chargement de la liste…</string>
+    <string name="list_error_title">Liste indisponible</string>
+    <string name="list_error_round_unavailable">Aucune tournée en cours.</string>
+    <string name="list_status_a_faire">À faire</string>
+    <string name="list_status_livre">Livré</string>
+    <string name="list_status_annule">Annulé</string>
 </resources>

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delivr.app.DelivrApplication
 import com.delivr.app.ui.delivery.DeliveryViewModel
 import com.delivr.app.ui.home.HomeViewModel
+import com.delivr.app.ui.list.ListViewModel
 import com.delivr.app.ui.validation.ValidationViewModel
 
 /**
@@ -50,6 +51,12 @@ object DelivrViewModelFactories {
     val delivery: ViewModelProvider.Factory =
         viewModelFactory {
             initializer { DeliveryViewModel(repository = delivrApplication().roundRepository) }
+        }
+
+    /** Même raisonnement que [delivery] : `ListViewModel` n'a besoin que du repository. */
+    val list: ViewModelProvider.Factory =
+        viewModelFactory {
+            initializer { ListViewModel(repository = delivrApplication().roundRepository) }
         }
 }
 

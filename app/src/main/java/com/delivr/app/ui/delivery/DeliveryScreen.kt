@@ -54,14 +54,18 @@ private val PRIMARY_ACTION_ICON_SIZE = 40.dp
  * `HomeRoute`/`ValidationRoute` : le ViewModel vit ici, [DeliveryScreen]
  * reste une fonction pure de son état.
  *
- * Aucun argument de navigation : la tournée est **toujours** relue depuis
- * Room, qu'on arrive depuis « Démarrer la tournée » (après un scan) ou
- * depuis « Reprendre la tournée en cours » (accueil).
+ * La tournée est **toujours** relue depuis Room, qu'on arrive depuis
+ * « Démarrer la tournée » (après un scan), depuis « Reprendre la tournée en
+ * cours » (accueil), ou depuis l'écran Liste (Phase 7) — [focusOnCottageNumber]
+ * n'est renseigné que dans ce dernier cas, pour afficher ce cottage précis
+ * plutôt que le courant déduit (voir `DeliveryViewModel.load`).
  */
 @Composable
 fun DeliveryRoute(
     onBackToHome: () -> Unit,
+    onListRequested: () -> Unit,
     modifier: Modifier = Modifier,
+    focusOnCottageNumber: Int? = null,
     viewModel: DeliveryViewModel = viewModel(factory = DelivrViewModelFactories.delivery),
 ) {
     LaunchedEffect(Unit) {
@@ -69,7 +73,7 @@ fun DeliveryRoute(
         // de configuration, le ViewModel a survécu avec son état, inutile de
         // relire la base.
         if (viewModel.uiState is DeliveryUiState.Loading) {
-            viewModel.load()
+            viewModel.load(focusOnCottageNumber)
         }
     }
 
@@ -78,10 +82,7 @@ fun DeliveryRoute(
         onDelivered = viewModel::onDelivered,
         onCancelled = viewModel::onCancelled,
         onPreviousCottage = viewModel::onPreviousCottage,
-        // Écran Liste = Phase 7 : l'icône est présente et annoncée par
-        // TalkBack (TODO_V1.md 6.5), mais ne navigue nulle part pour
-        // l'instant — décision explicite, plutôt qu'un écran bouchon.
-        onListRequested = {},
+        onListRequested = onListRequested,
         onBackToHome = onBackToHome,
         modifier = modifier,
     )
@@ -210,7 +211,7 @@ private fun DeliveryInProgress(
             )
         }
 
-        // ---- Coin haut-droit : Liste (inerte jusqu'à la Phase 7) --------
+        // ---- Coin haut-droit : Liste (Phase 7) --------------------------
         IconButton(
             onClick = onListRequested,
             modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),

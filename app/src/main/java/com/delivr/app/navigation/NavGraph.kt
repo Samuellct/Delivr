@@ -10,12 +10,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.delivr.app.ui.delivery.DeliveryRoute
 import com.delivr.app.ui.home.HomeRoute
+import com.delivr.app.ui.list.ListRoute
 import com.delivr.app.ui.scan.ScanRoute
 import com.delivr.app.ui.validation.ValidationRoute
 
 /**
- * Graphe de navigation principal. L'écran de liste (Phase 7) viendra
- * s'ajouter ici au fur et à mesure du développement (voir README).
+ * Graphe de navigation principal.
  */
 @Composable
 fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
@@ -27,7 +27,7 @@ fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
                 // dépiler, donc pas de popUpTo. launchSingleTop évite qu'un
                 // double tap n'empile deux fois le mode Livraison.
                 onReprendreTournee = {
-                    navController.navigate(Routes.DELIVERY) { launchSingleTop = true }
+                    navController.navigate(Routes.delivery()) { launchSingleTop = true }
                 },
             )
         }
@@ -52,15 +52,41 @@ fun DelivrNavGraph(navController: NavHostController = rememberNavController()) {
                 // fichier image peut d'ailleurs avoir disparu). Pile
                 // résultante : [Home, Delivery].
                 onStartDelivery = {
-                    navController.navigate(Routes.DELIVERY) {
+                    navController.navigate(Routes.delivery()) {
                         popUpTo(Routes.HOME) { inclusive = false }
                         launchSingleTop = true
                     }
                 },
             )
         }
-        composable(Routes.DELIVERY) {
-            DeliveryRoute(onBackToHome = { navController.popBackStack(Routes.HOME, inclusive = false) })
+        composable(
+            route = Routes.DELIVERY,
+            arguments =
+                listOf(
+                    navArgument(Routes.DELIVERY_ARG_COTTAGE_NUMBER) {
+                        type = NavType.IntType
+                        defaultValue = Routes.DELIVERY_NO_COTTAGE
+                    },
+                ),
+        ) { backStackEntry ->
+            val cottageNumber =
+                backStackEntry.arguments?.getInt(Routes.DELIVERY_ARG_COTTAGE_NUMBER) ?: Routes.DELIVERY_NO_COTTAGE
+            DeliveryRoute(
+                onBackToHome = { navController.popBackStack(Routes.HOME, inclusive = false) },
+                onListRequested = { navController.navigate(Routes.LIST) { launchSingleTop = true } },
+                focusOnCottageNumber = cottageNumber.takeIf { it != Routes.DELIVERY_NO_COTTAGE },
+            )
+        }
+        composable(Routes.LIST) {
+            ListRoute(
+                onBack = { navController.popBackStack() },
+                // Pas de popUpTo ici, volontairement : le retour système
+                // depuis ce cottage ciblé doit ramener à la Liste (pour
+                // enchaîner sur un autre cottage), pas à l'accueil.
+                onCottageSelected = { number ->
+                    navController.navigate(Routes.delivery(number)) { launchSingleTop = true }
+                },
+            )
         }
     }
 }
