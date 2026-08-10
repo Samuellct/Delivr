@@ -240,6 +240,27 @@ class DeliveryViewModelTest {
         }
 
     @Test
+    fun `apres avoir marque un cottage cible, canAct passe a false meme si isFinished reste false`() =
+        runTest {
+            // Régression constatée manuellement : en mode ciblé, le cottage
+            // affiché ne change jamais (voir applyAndSave), donc isFinished
+            // (basé sur "y a-t-il un cottage affiché ?") restait faux même
+            // après un tap réussi — les boutons Livré/Annulé restaient
+            // actifs sans aucun retour visuel que le geste avait fonctionné.
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 143)
+
+            vm.onDelivered()
+
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(143, state.currentCottage?.number)
+            assertFalse(state.isFinished)
+            assertFalse(state.canAct)
+        }
+
+    @Test
     fun `onCancelled en mode cible annule le cottage cible, pas le courant deduit`() =
         runTest {
             val repository = RoundRepository(FakeRoundDao())

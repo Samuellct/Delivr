@@ -66,6 +66,19 @@ sealed interface DeliveryUiState {
 
         val isFinished: Boolean get() = currentCottage == null
 
+        /**
+         * Faut-il activer Livré/Annulé : uniquement si le cottage affiché est
+         * encore à faire. En mode séquentiel (pas de focus), équivaut à
+         * `!isFinished` — [currentCottage] n'est jamais qu'un cottage encore
+         * `A_FAIRE`, par construction de [currentCottageIndex]. En mode ciblé
+         * (Phase 7), la nuance compte : le cottage affiché reste le même
+         * après un geste (voir `DeliveryViewModel.applyAndSave`), donc
+         * `isFinished` resterait `false` même une fois son statut changé —
+         * sans ce champ, les boutons resteraient actifs sans retour visuel
+         * après un tap réussi sur un cottage ciblé.
+         */
+        val canAct: Boolean get() = currentCottage?.status == CottageStatus.A_FAIRE
+
         /** Le tout premier cottage n'a pas de précédent : « Retour » y est inerte. */
         val canGoBack: Boolean get() = currentIndex > 0
 
