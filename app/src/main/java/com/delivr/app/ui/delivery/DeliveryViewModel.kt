@@ -27,11 +27,9 @@ sealed interface DeliveryError {
 /**
  * État de l'écran de livraison.
  *
- * [InProgress] ne porte qu'**une** donnée, la liste des cottages avec leurs
- * statuts : tout le reste (position courante, total, fin de tournée) en est
- * dérivé par `domain/DeliveryProgress.kt`. Une seule source de vérité, donc
- * aucun risque de compteur désynchronisé — et les tests Compose peuvent
- * piloter l'écran avec la seule liste (voir `DeliveryScreenTest`).
+ * [InProgress] porte la liste des cottages avec leurs statuts, plus
+ * [pagerIndex] (voir son KDoc) : tout le reste (position courante, total,
+ * fin de tournée) en est dérivé.
  */
 sealed interface DeliveryUiState {
     data object Loading : DeliveryUiState
@@ -39,45 +37,35 @@ sealed interface DeliveryUiState {
     data class InProgress(
         val cottages: List<Cottage>,
         /**
-         * Numéro d'un cottage précis à afficher, quel que soit son statut —
-         * non nul quand on arrive depuis l'écran Liste (Phase 7), qui permet
-         * de rejoindre n'importe quel cottage, pas seulement le courant
-         * déduit. `null` (l'arrivée normale, Phase 6 inchangée) : le cottage
-         * affiché reste celui de [currentCottageIndex].
+         * Curseur de défilement libre, utilisé uniquement en navigation
+         * rapide depuis l'écran Liste (Phase 7) : `null` tant qu'on n'a pas
+         * encore agi depuis un cottage ciblé. Contrairement au courant
+         * déduit par [currentCottageIndex] (comportement Phase 6, utilisé
+         * par « Reprendre »/« Démarrer la tournée »), ce curseur **avance ou
+         * recule d'une position à chaque geste, quel que soit le statut du
+         * cottage voisin** — c'est ce qui permet, après avoir sauté plusieurs
+         * cottages loupés depuis la Liste, de les retraiter un par un « au
+         * fil de l'eau » sans revenir systématiquement au premier « à faire »
+         * de toute la tournée. Vit uniquement en mémoire (pas de colonne
+         * Room) : fermer l'app et rouvrir avec « Reprendre » repart toujours
+         * du courant déduit, jamais de ce curseur.
          */
-        val focusedNumber: Int? = null,
+        val pagerIndex: Int? = null,
     ) : DeliveryUiState {
-        /** Index de [focusedNumber] dans [cottages], ou `null` s'il est absent ou non renseigné. */
-        private val focusedIndex: Int?
-            get() = focusedNumber?.let { number -> cottages.indexOfFirst { it.number == number }.takeIf { it >= 0 } }
-
         /**
-         * Index (base 0) du cottage affiché : celui ciblé par [focusedNumber]
-         * s'il existe, sinon le cottage courant déduit par
-         * [currentCottageIndex] (comportement Phase 6 inchangé). [total] si
-         * la tournée est finie et qu'aucun cottage n'est ciblé.
+         * Index (base 0) du cottage affiché : [pagerIndex] s'il est engagé,
+         * sinon le cottage courant déduit par [currentCottageIndex]
+         * (comportement Phase 6 inchangé). [total] si la tournée est finie
+         * (ou si le défilement libre a dépassé la fin de la liste).
          */
-        val currentIndex: Int get() = focusedIndex ?: currentCottageIndex(cottages)
+        val currentIndex: Int get() = pagerIndex ?: currentCottageIndex(cottages)
 
         val total: Int get() = cottages.size
 
-        /** `null` quand la tournée est terminée. */
+        /** `null` quand il n'y a plus de cottage à cet index (tournée terminée, ou fin du défilement libre). */
         val currentCottage: Cottage? get() = cottages.getOrNull(currentIndex)
 
         val isFinished: Boolean get() = currentCottage == null
-
-        /**
-         * Faut-il activer Livré/Annulé : uniquement si le cottage affiché est
-         * encore à faire. En mode séquentiel (pas de focus), équivaut à
-         * `!isFinished` — [currentCottage] n'est jamais qu'un cottage encore
-         * `A_FAIRE`, par construction de [currentCottageIndex]. En mode ciblé
-         * (Phase 7), la nuance compte : le cottage affiché reste le même
-         * après un geste (voir `DeliveryViewModel.applyAndSave`), donc
-         * `isFinished` resterait `false` même une fois son statut changé —
-         * sans ce champ, les boutons resteraient actifs sans retour visuel
-         * après un tap réussi sur un cottage ciblé.
-         */
-        val canAct: Boolean get() = currentCottage?.status == CottageStatus.A_FAIRE
 
         /** Le tout premier cottage n'a pas de précédent : « Retour » y est inerte. */
         val canGoBack: Boolean get() = currentIndex > 0
@@ -114,7 +102,10 @@ class DeliveryViewModel(
      * pour ne pas rejouer la lecture après un changement de configuration).
      *
      * [focusOnCottageNumber] non nul quand on arrive depuis l'écran Liste
-     * (Phase 7) sur un cottage précis plutôt que sur le courant déduit.
+     * (Phase 7) sur un cottage précis : engage
+     * [DeliveryUiState.InProgress.pagerIndex] sur sa position dans la
+     * tournée. Un numéro absent (ne devrait pas arriver) retombe
+     * silencieusement sur le courant déduit.
      */
     fun load(focusOnCottageNumber: Int? = null) {
         viewModelScope.launch {
@@ -123,7 +114,11 @@ class DeliveryViewModel(
                 if (saved == null) {
                     DeliveryUiState.Error(DeliveryError.RoundUnavailable)
                 } else {
-                    DeliveryUiState.InProgress(saved.cottages, focusedNumber = focusOnCottageNumber)
+                    val pagerIndex =
+                        focusOnCottageNumber?.let { number ->
+                            saved.cottages.indexOfFirst { it.number == number }.takeIf { it >= 0 }
+                        }
+                    DeliveryUiState.InProgress(saved.cottages, pagerIndex = pagerIndex)
                 }
         }
     }
@@ -139,51 +134,63 @@ class DeliveryViewModel(
     }
 
     /**
-     * Repasse le cottage affiché juste avant l'actuel à « à faire », qui le
-     * fait redevenir affiché (courant déduit, ou cible d'un focus — voir
-     * [DeliveryUiState.InProgress.currentIndex]).
+     * En défilement libre ([DeliveryUiState.InProgress.pagerIndex] engagé) :
+     * recule d'une position, sans toucher au statut de qui que ce soit — pure
+     * navigation, pour pouvoir revoir un cottage déjà traité sans en effacer
+     * le statut. En mode séquentiel (comportement Phase 6 inchangé) : repasse
+     * le cottage précédent à « à faire », qui redevient donc le courant.
      */
     fun onPreviousCottage() {
         val current = uiState as? DeliveryUiState.InProgress ?: return
+
+        if (current.pagerIndex != null) {
+            val newIndex = current.pagerIndex - 1
+            if (newIndex < 0) return
+            uiState = current.copy(pagerIndex = newIndex)
+            return
+        }
+
         val target = current.cottages.getOrNull(current.currentIndex - 1) ?: return
         applyAndSave(
-            previous = current,
-            cottages = resetCottageBeforeIndex(current.cottages, current.currentIndex),
+            current.copy(cottages = resetCottageBeforeIndex(current.cottages, current.currentIndex)),
             number = target.number,
             status = CottageStatus.A_FAIRE,
         )
     }
 
+    /**
+     * Marque le cottage affiché. En défilement libre, avance [pagerIndex]
+     * d'une position après coup — vers le cottage suivant de la tournée,
+     * quel que soit son statut (« au fil de l'eau »), pas vers le prochain
+     * `A_FAIRE` : c'est justement ce qui permet de retraiter dans l'ordre une
+     * plage de cottages loupés, y compris ceux déjà marqués par erreur.
+     */
     private fun mark(status: CottageStatus) {
         val current = uiState as? DeliveryUiState.InProgress ?: return
         val target = current.currentCottage ?: return
-        applyAndSave(
-            previous = current,
-            cottages = markCottageAtIndex(current.cottages, current.currentIndex, status),
-            number = target.number,
-            status = status,
-        )
+        val updatedCottages = markCottageAtIndex(current.cottages, current.currentIndex, status)
+        val newState =
+            current.copy(
+                cottages = updatedCottages,
+                pagerIndex = current.pagerIndex?.plus(1),
+            )
+        applyAndSave(newState, number = target.number, status = status)
     }
 
     /**
      * Même idiome que `ValidationViewModel.applyAndSave` : l'UI est mise à
-     * jour **synchrone** (le numéro suivant apparaît dans l'instant, ce que
+     * jour **synchrone** (le cottage suivant apparaît dans l'instant, ce que
      * demande le modèle « coup d'œil » de `Presentation.md` § Mode
      * Livraison), l'écriture Room part en tâche de fond. Plus simple ici que
      * côté validation : une seule ligne change, donc un `UPDATE` ciblé au
      * lieu d'une réécriture complète de la liste.
-     *
-     * [previous].copy() préserve [DeliveryUiState.InProgress.focusedNumber]
-     * automatiquement : un focus ne se perd pas au premier geste effectué
-     * dessus (le numéro visé ne change pas, seul son statut change).
      */
     private fun applyAndSave(
-        previous: DeliveryUiState.InProgress,
-        cottages: List<Cottage>,
+        newState: DeliveryUiState.InProgress,
         number: Int,
         status: CottageStatus,
     ) {
-        uiState = previous.copy(cottages = cottages)
+        uiState = newState
         viewModelScope.launch { repository.updateCottageStatus(number = number, status = status) }
     }
 }

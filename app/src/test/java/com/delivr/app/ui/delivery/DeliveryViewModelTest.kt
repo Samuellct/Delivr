@@ -224,7 +224,7 @@ class DeliveryViewModelTest {
         }
 
     @Test
-    fun `onDelivered en mode cible marque le cottage cible, pas le courant deduit`() =
+    fun `onDelivered en defilement libre marque le cottage affiche, pas le courant deduit`() =
         runTest {
             val repository = RoundRepository(FakeRoundDao())
             repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
@@ -240,28 +240,27 @@ class DeliveryViewModelTest {
         }
 
     @Test
-    fun `apres avoir marque un cottage cible, canAct passe a false meme si isFinished reste false`() =
+    fun `onDelivered en defilement libre avance a la position suivante, peu importe son statut`() =
         runTest {
-            // Régression constatée manuellement : en mode ciblé, le cottage
-            // affiché ne change jamais (voir applyAndSave), donc isFinished
-            // (basé sur "y a-t-il un cottage affiché ?") restait faux même
-            // après un tap réussi — les boutons Livré/Annulé restaient
-            // actifs sans aucun retour visuel que le geste avait fonctionné.
+            // Constaté lors du test manuel : après avoir marqué un cottage
+            // ciblé, l'écran devait passer au suivant "au fil de l'eau" (par
+            // position), pas rester bloqué dessus ni revenir au premier
+            // A_FAIRE global.
             val repository = RoundRepository(FakeRoundDao())
             repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
             val vm = DeliveryViewModel(repository)
-            vm.load(focusOnCottageNumber = 143)
+            vm.load(focusOnCottageNumber = 3)
 
             vm.onDelivered()
 
             val state = vm.uiState as DeliveryUiState.InProgress
-            assertEquals(143, state.currentCottage?.number)
+            assertEquals(35, state.currentCottage?.number)
+            assertEquals(2, state.displayPosition)
             assertFalse(state.isFinished)
-            assertFalse(state.canAct)
         }
 
     @Test
-    fun `onCancelled en mode cible annule le cottage cible, pas le courant deduit`() =
+    fun `onCancelled en defilement libre annule le cottage affiche et avance`() =
         runTest {
             val repository = RoundRepository(FakeRoundDao())
             repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
@@ -273,10 +272,12 @@ class DeliveryViewModelTest {
             val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
             assertEquals(CottageStatus.A_FAIRE, statuses?.get(3))
             assertEquals(CottageStatus.ANNULE, statuses?.get(35))
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(143, state.currentCottage?.number)
         }
 
     @Test
-    fun `onPreviousCottage en mode cible repasse le cottage juste avant a A_FAIRE`() =
+    fun `onPreviousCottage en defilement libre recule d'une position sans toucher au statut`() =
         runTest {
             val repository = RoundRepository(FakeRoundDao())
             repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
@@ -285,24 +286,65 @@ class DeliveryViewModelTest {
 
             vm.onPreviousCottage()
 
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(35, state.currentCottage?.number)
+            // Pure navigation : aucun statut ne doit avoir changé.
             val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
             assertEquals(CottageStatus.A_FAIRE, statuses?.get(35))
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(143))
         }
 
     @Test
-    fun `le focus survit a une mutation, l'index affiche suit le meme numero`() =
+    fun `onPreviousCottage en defilement libre fonctionne toujours, meme sur un cottage deja traite`() =
+        runTest {
+            // Le bouton Retour doit toujours pouvoir reculer, qu'importe le
+            // statut du cottage précédent (déjà livré, annulé, ou à faire).
+            val dao = FakeRoundDao()
+            val repository = RoundRepository(dao)
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            dao.setStatusForTest(35, CottageStatus.LIVRE)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 143)
+
+            vm.onPreviousCottage()
+
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(35, state.currentCottage?.number)
+            assertEquals(CottageStatus.LIVRE, state.currentCottage?.status)
+        }
+
+    @Test
+    fun `onPreviousCottage en defilement libre sur le premier cottage ne fait rien`() =
         runTest {
             val repository = RoundRepository(FakeRoundDao())
             repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
             val vm = DeliveryViewModel(repository)
-            vm.load(focusOnCottageNumber = 143)
+            vm.load(focusOnCottageNumber = 3)
 
-            vm.onDelivered()
+            vm.onPreviousCottage()
 
             val state = vm.uiState as DeliveryUiState.InProgress
-            assertEquals(143, state.focusedNumber)
-            assertEquals(143, state.currentCottage?.number)
-            assertEquals(CottageStatus.LIVRE, state.currentCottage?.status)
+            assertEquals(3, state.currentCottage?.number)
+            assertFalse(state.canGoBack)
+        }
+
+    @Test
+    fun `defiler jusqu'au bout de la liste affiche la tournee terminee et Retour reste actif`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 3)
+
+            vm.onDelivered()
+            vm.onDelivered()
+
+            var state = vm.uiState as DeliveryUiState.InProgress
+            assertTrue(state.isFinished)
+
+            vm.onPreviousCottage()
+            state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(35, state.currentCottage?.number)
         }
 
     @Test

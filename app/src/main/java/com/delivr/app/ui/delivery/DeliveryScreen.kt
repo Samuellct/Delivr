@@ -225,7 +225,7 @@ private fun DeliveryInProgress(
         // ---- Coin bas-gauche : Livré (tap simple) -----------------------
         IconButton(
             onClick = onDelivered,
-            enabled = state.canAct,
+            enabled = !state.isFinished,
             // contentColor suffit : IconButtonDefaults en dérive tout seul
             // la couleur désactivée (même teinte à 38 % d'opacité).
             colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.tertiary),
@@ -240,7 +240,7 @@ private fun DeliveryInProgress(
 
         // ---- Coin bas-droit : Annulé (appui long uniquement) ------------
         CancelControl(
-            enabled = state.canAct,
+            enabled = !state.isFinished,
             onCancelled = onCancelled,
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         )
