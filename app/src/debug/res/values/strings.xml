@@ -1,0 +1,6 @@
+<resources>
+    <!-- Surcharge le libellé du lanceur pour le seul build debug, afin de
+         distinguer les deux icônes quand debug et release cohabitent sur le
+         même téléphone (voir TODO_V1.md, Phase 8.3). -->
+    <string name="app_name">Delivr debug</string>
+</resources>

@@ -81,6 +81,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Le build debug s'installe sous com.delivr.app.debug : il cohabite
+            // donc avec la release (com.delivr.app) sur le même téléphone,
+            // chacun avec sa propre base Room. Évite les `adb uninstall`
+            // répétés (conflit de signature debug/release) qui détruisaient la
+            // tournée de test à chaque aller-retour entre les deux builds.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
