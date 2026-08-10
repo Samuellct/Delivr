@@ -1,4 +1,14 @@
 
+## [v0.6.5] - 2026-08-10
+### [0.6.5](https://github.com/Samuellct/Delivr/compare/v0.6.4...v0.6.5) (2026-08-10)
+
+
+### Build Systems
+
+* met à jour les dépendances AndroidX ([50dbd73](https://github.com/Samuellct/Delivr/commit/50dbd737c077e3d268bd6aadc632d193024f9811))
+
+
+
 ## [v0.6.3] - 2026-08-10
 ### [0.6.3](https://github.com/Samuellct/Delivr/compare/v0.6.2...v0.6.3) (2026-08-10)
 
