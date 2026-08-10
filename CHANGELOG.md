@@ -1,4 +1,14 @@
 
+## [v0.6.1] - 2026-08-10
+### [0.6.1](https://github.com/Samuellct/Delivr/compare/v0.6.0...v0.6.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **delivery:** désactive Livré/Annulé après avoir marqué un cottage ciblé ([72b3870](https://github.com/Samuellct/Delivr/commit/72b3870c006daae8702a08aa38bee6cd4296b6bb))
+
+
+
 ## [v0.6.0] - 2026-08-10
 ## [0.6.0](https://github.com/Samuellct/Delivr/compare/v0.5.2...v0.6.0) (2026-08-10)
 
