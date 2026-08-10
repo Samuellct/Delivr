@@ -1,4 +1,15 @@
 
+## [v0.6.0] - 2026-08-10
+## [0.6.0](https://github.com/Samuellct/Delivr/compare/v0.5.2...v0.6.0) (2026-08-10)
+
+
+### Features
+
+* **domain:** logique de navigation ciblée pour le mode Livraison ([2360177](https://github.com/Samuellct/Delivr/commit/2360177c9472a9fd45b01c688000900435947759))
+* **list:** écran Liste avec statuts et navigation rapide ([4d67459](https://github.com/Samuellct/Delivr/commit/4d6745990ee0750a7c8d0b87af155f601f23f41a))
+
+
+
 ## [v0.5.2] - 2026-08-09
 ### [0.5.2](https://github.com/Samuellct/Delivr/compare/v0.5.1...v0.5.2) (2026-08-09)
 
