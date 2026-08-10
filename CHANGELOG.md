@@ -1,4 +1,14 @@
 
+## [v0.6.2] - 2026-08-10
+### [0.6.2](https://github.com/Samuellct/Delivr/compare/v0.6.1...v0.6.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **delivery:** navigation rapide par position (défilement libre) ([c2d5dc7](https://github.com/Samuellct/Delivr/commit/c2d5dc705b4601be615b294a30ecbbc0aa984aaa))
+
+
+
 ## [v0.6.1] - 2026-08-10
 ### [0.6.1](https://github.com/Samuellct/Delivr/compare/v0.6.0...v0.6.1) (2026-08-10)
 
