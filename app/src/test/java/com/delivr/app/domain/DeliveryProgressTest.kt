@@ -126,4 +126,49 @@ class DeliveryProgressTest {
 
         assertEquals(cottages, result)
     }
+
+    @Test
+    fun `markCottageAtIndex change le cottage cible, pas forcement le courant`() {
+        // Le courant (premier A_FAIRE) est l'index 0 ; on cible l'index 2.
+        val cottages = round(CottageStatus.A_FAIRE, CottageStatus.A_FAIRE, CottageStatus.A_FAIRE)
+
+        val result = markCottageAtIndex(cottages, 2, CottageStatus.LIVRE)
+
+        assertEquals(CottageStatus.A_FAIRE, result[0].status)
+        assertEquals(CottageStatus.A_FAIRE, result[1].status)
+        assertEquals(CottageStatus.LIVRE, result[2].status)
+    }
+
+    @Test
+    fun `markCottageAtIndex hors bornes laisse la liste inchangee`() {
+        val cottages = round(CottageStatus.A_FAIRE, CottageStatus.A_FAIRE)
+
+        assertEquals(cottages, markCottageAtIndex(cottages, -1, CottageStatus.LIVRE))
+        assertEquals(cottages, markCottageAtIndex(cottages, 2, CottageStatus.LIVRE))
+    }
+
+    @Test
+    fun `resetCottageBeforeIndex repasse le cottage juste avant l'index cible a A_FAIRE`() {
+        val cottages = round(CottageStatus.LIVRE, CottageStatus.LIVRE, CottageStatus.A_FAIRE)
+
+        val result = resetCottageBeforeIndex(cottages, 2)
+
+        assertEquals(CottageStatus.LIVRE, result[0].status)
+        assertEquals(CottageStatus.A_FAIRE, result[1].status)
+        assertEquals(CottageStatus.A_FAIRE, result[2].status)
+    }
+
+    @Test
+    fun `resetCottageBeforeIndex sur l'index 0 ne change rien`() {
+        val cottages = round(CottageStatus.A_FAIRE, CottageStatus.A_FAIRE)
+
+        assertEquals(cottages, resetCottageBeforeIndex(cottages, 0))
+    }
+
+    @Test
+    fun `resetCottageBeforeIndex avec un index negatif ne change rien`() {
+        val cottages = round(CottageStatus.A_FAIRE, CottageStatus.A_FAIRE)
+
+        assertEquals(cottages, resetCottageBeforeIndex(cottages, -1))
+    }
 }

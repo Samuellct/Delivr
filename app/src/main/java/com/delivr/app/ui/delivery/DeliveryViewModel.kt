@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.delivr.app.domain.Cottage
 import com.delivr.app.domain.CottageStatus
 import com.delivr.app.domain.currentCottageIndex
-import com.delivr.app.domain.goBackToPreviousCottage
-import com.delivr.app.domain.markCurrentCottage
+import com.delivr.app.domain.markCottageAtIndex
+import com.delivr.app.domain.resetCottageBeforeIndex
 import com.delivr.app.repository.RoundRepository
 import kotlinx.coroutines.launch
 
@@ -38,9 +38,26 @@ sealed interface DeliveryUiState {
 
     data class InProgress(
         val cottages: List<Cottage>,
+        /**
+         * Numéro d'un cottage précis à afficher, quel que soit son statut —
+         * non nul quand on arrive depuis l'écran Liste (Phase 7), qui permet
+         * de rejoindre n'importe quel cottage, pas seulement le courant
+         * déduit. `null` (l'arrivée normale, Phase 6 inchangée) : le cottage
+         * affiché reste celui de [currentCottageIndex].
+         */
+        val focusedNumber: Int? = null,
     ) : DeliveryUiState {
-        /** Index (base 0) du cottage courant, ou [total] si la tournée est finie. */
-        val currentIndex: Int get() = currentCottageIndex(cottages)
+        /** Index de [focusedNumber] dans [cottages], ou `null` s'il est absent ou non renseigné. */
+        private val focusedIndex: Int?
+            get() = focusedNumber?.let { number -> cottages.indexOfFirst { it.number == number }.takeIf { it >= 0 } }
+
+        /**
+         * Index (base 0) du cottage affiché : celui ciblé par [focusedNumber]
+         * s'il existe, sinon le cottage courant déduit par
+         * [currentCottageIndex] (comportement Phase 6 inchangé). [total] si
+         * la tournée est finie et qu'aucun cottage n'est ciblé.
+         */
+        val currentIndex: Int get() = focusedIndex ?: currentCottageIndex(cottages)
 
         val total: Int get() = cottages.size
 
@@ -82,45 +99,54 @@ class DeliveryViewModel(
      * Appelé une fois à l'arrivée sur l'écran (voir `DeliveryRoute` dans
      * `DeliveryScreen.kt`, qui le conditionne à l'état [DeliveryUiState.Loading]
      * pour ne pas rejouer la lecture après un changement de configuration).
+     *
+     * [focusOnCottageNumber] non nul quand on arrive depuis l'écran Liste
+     * (Phase 7) sur un cottage précis plutôt que sur le courant déduit.
      */
-    fun load() {
+    fun load(focusOnCottageNumber: Int? = null) {
         viewModelScope.launch {
             val saved = repository.loadRound()
             uiState =
                 if (saved == null) {
                     DeliveryUiState.Error(DeliveryError.RoundUnavailable)
                 } else {
-                    DeliveryUiState.InProgress(saved.cottages)
+                    DeliveryUiState.InProgress(saved.cottages, focusedNumber = focusOnCottageNumber)
                 }
         }
     }
 
     /** Tap simple sur la coche verte (cas courant, `TODO_V1.md` 6.3). */
     fun onDelivered() {
-        markCurrent(CottageStatus.LIVRE)
+        mark(CottageStatus.LIVRE)
     }
 
     /** Appui long sur la croix rouge — le garde-fou du geste est dans l'UI, pas ici. */
     fun onCancelled() {
-        markCurrent(CottageStatus.ANNULE)
+        mark(CottageStatus.ANNULE)
     }
 
-    /** Repasse le cottage précédent à « à faire », qui redevient donc le courant. */
+    /**
+     * Repasse le cottage affiché juste avant l'actuel à « à faire », qui le
+     * fait redevenir affiché (courant déduit, ou cible d'un focus — voir
+     * [DeliveryUiState.InProgress.currentIndex]).
+     */
     fun onPreviousCottage() {
         val current = uiState as? DeliveryUiState.InProgress ?: return
         val target = current.cottages.getOrNull(current.currentIndex - 1) ?: return
         applyAndSave(
-            cottages = goBackToPreviousCottage(current.cottages),
+            previous = current,
+            cottages = resetCottageBeforeIndex(current.cottages, current.currentIndex),
             number = target.number,
             status = CottageStatus.A_FAIRE,
         )
     }
 
-    private fun markCurrent(status: CottageStatus) {
+    private fun mark(status: CottageStatus) {
         val current = uiState as? DeliveryUiState.InProgress ?: return
         val target = current.currentCottage ?: return
         applyAndSave(
-            cottages = markCurrentCottage(current.cottages, status),
+            previous = current,
+            cottages = markCottageAtIndex(current.cottages, current.currentIndex, status),
             number = target.number,
             status = status,
         )
@@ -133,13 +159,18 @@ class DeliveryViewModel(
      * Livraison), l'écriture Room part en tâche de fond. Plus simple ici que
      * côté validation : une seule ligne change, donc un `UPDATE` ciblé au
      * lieu d'une réécriture complète de la liste.
+     *
+     * [previous].copy() préserve [DeliveryUiState.InProgress.focusedNumber]
+     * automatiquement : un focus ne se perd pas au premier geste effectué
+     * dessus (le numéro visé ne change pas, seul son statut change).
      */
     private fun applyAndSave(
+        previous: DeliveryUiState.InProgress,
         cottages: List<Cottage>,
         number: Int,
         status: CottageStatus,
     ) {
-        uiState = DeliveryUiState.InProgress(cottages)
+        uiState = previous.copy(cottages = cottages)
         viewModelScope.launch { repository.updateCottageStatus(number = number, status = status) }
     }
 }

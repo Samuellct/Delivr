@@ -208,4 +208,92 @@ class DeliveryViewModelTest {
             val state = newVm.uiState as DeliveryUiState.InProgress
             assertEquals(35, state.currentCottage?.number)
         }
+
+    @Test
+    fun `load avec focusOnCottageNumber affiche ce cottage meme s'il n'est pas le courant`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+
+            vm.load(focusOnCottageNumber = 143)
+
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(143, state.currentCottage?.number)
+            assertEquals(3, state.displayPosition)
+        }
+
+    @Test
+    fun `onDelivered en mode cible marque le cottage cible, pas le courant deduit`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 143)
+
+            vm.onDelivered()
+
+            val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(3))
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(35))
+            assertEquals(CottageStatus.LIVRE, statuses?.get(143))
+        }
+
+    @Test
+    fun `onCancelled en mode cible annule le cottage cible, pas le courant deduit`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 35)
+
+            vm.onCancelled()
+
+            val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(3))
+            assertEquals(CottageStatus.ANNULE, statuses?.get(35))
+        }
+
+    @Test
+    fun `onPreviousCottage en mode cible repasse le cottage juste avant a A_FAIRE`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 143)
+
+            vm.onPreviousCottage()
+
+            val statuses = repository.loadRound()?.cottages?.associate { it.number to it.status }
+            assertEquals(CottageStatus.A_FAIRE, statuses?.get(35))
+        }
+
+    @Test
+    fun `le focus survit a une mutation, l'index affiche suit le meme numero`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35, 143), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+            vm.load(focusOnCottageNumber = 143)
+
+            vm.onDelivered()
+
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(143, state.focusedNumber)
+            assertEquals(143, state.currentCottage?.number)
+            assertEquals(CottageStatus.LIVRE, state.currentCottage?.status)
+        }
+
+    @Test
+    fun `un focus sur un numero absent retombe sur le courant deduit`() =
+        runTest {
+            val repository = RoundRepository(FakeRoundDao())
+            repository.startRound(listOf(3, 35), SortDirection.ASCENDING)
+            val vm = DeliveryViewModel(repository)
+
+            vm.load(focusOnCottageNumber = 999)
+
+            val state = vm.uiState as DeliveryUiState.InProgress
+            assertEquals(3, state.currentCottage?.number)
+        }
 }

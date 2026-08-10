@@ -44,6 +44,37 @@ fun currentCottageIndex(cottages: List<Cottage>): Int {
 }
 
 /**
+ * Variante indexée de [markCurrentCottage] : applique [status] au cottage
+ * situé à [index], qu'il soit ou non le cottage courant déduit par
+ * [currentCottageIndex]. Sert la navigation ciblée de la Phase 7 (Liste →
+ * mode Livraison sur un cottage précis) : Livré/Annulé doivent alors agir
+ * sur le cottage affiché, pas sur celui que [currentCottageIndex]
+ * calculerait. Sans effet si [index] est hors bornes.
+ */
+fun markCottageAtIndex(
+    cottages: List<Cottage>,
+    index: Int,
+    status: CottageStatus,
+): List<Cottage> {
+    if (index !in cottages.indices) return cottages
+    return cottages.mapIndexed { i, cottage -> if (i == index) cottage.copy(status = status) else cottage }
+}
+
+/**
+ * Variante indexée de [goBackToPreviousCottage] : repasse à
+ * [CottageStatus.A_FAIRE] le cottage situé juste avant [index]. Sans effet
+ * si [index] est déjà le premier (`<= 0`).
+ */
+fun resetCottageBeforeIndex(
+    cottages: List<Cottage>,
+    index: Int,
+): List<Cottage> {
+    val target = index - 1
+    if (target < 0) return cottages
+    return markCottageAtIndex(cottages, target, CottageStatus.A_FAIRE)
+}
+
+/**
  * Applique [status] au cottage courant (tap sur Livré, appui long sur
  * Annulé — `TODO_V1.md` 6.3). Rend [cottages] inchangée si la tournée est
  * déjà terminée : l'écran grise déjà les deux icônes dans ce cas, mais la
@@ -57,11 +88,7 @@ fun currentCottageIndex(cottages: List<Cottage>): Int {
 fun markCurrentCottage(
     cottages: List<Cottage>,
     status: CottageStatus,
-): List<Cottage> {
-    val index = currentCottageIndex(cottages)
-    if (index >= cottages.size) return cottages
-    return cottages.mapIndexed { i, cottage -> if (i == index) cottage.copy(status = status) else cottage }
-}
+): List<Cottage> = markCottageAtIndex(cottages, currentCottageIndex(cottages), status)
 
 /**
  * « Retour » (coin haut-gauche, `TODO_V1.md` 6.2) : repasse le cottage
@@ -74,10 +101,4 @@ fun markCurrentCottage(
  * tournée est terminée, l'index courant vaut `size` : la cible est alors le
  * dernier cottage, ce qui permet de rattraper le tout dernier statut.
  */
-fun goBackToPreviousCottage(cottages: List<Cottage>): List<Cottage> {
-    val target = currentCottageIndex(cottages) - 1
-    if (target < 0) return cottages
-    return cottages.mapIndexed { i, cottage ->
-        if (i == target) cottage.copy(status = CottageStatus.A_FAIRE) else cottage
-    }
-}
+fun goBackToPreviousCottage(cottages: List<Cottage>): List<Cottage> = resetCottageBeforeIndex(cottages, currentCottageIndex(cottages))
