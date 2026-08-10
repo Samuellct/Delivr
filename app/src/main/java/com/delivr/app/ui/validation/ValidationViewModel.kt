@@ -1,5 +1,7 @@
 package com.delivr.app.ui.validation
 
+import android.os.SystemClock
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +19,15 @@ import com.delivr.app.ocr.recognizeText
 import com.delivr.app.repository.RoundRepository
 import com.delivr.app.utils.loadFullResolutionBitmap
 import kotlinx.coroutines.launch
+
+/**
+ * Tag de journalisation des durées du pipeline de scan (TODO_V1.md, Phase
+ * 8.1). Volontairement non conditionné à `BuildConfig.DEBUG` : la mesure
+ * doit porter sur l'APK release (celui qu'on publie), pas sur un build
+ * debug non représentatif. Coût : une ligne de log par scan, sans donnée
+ * personnelle (des durées en millisecondes et un nombre de cottages).
+ */
+private const val PERF_TAG = "DelivrPerf"
 
 /**
  * Cause d'un échec d'extraction. Découplé du domaine (`ExtractionResult`
@@ -181,20 +192,32 @@ class ValidationViewModel(
     fun extract(imagePath: String) {
         applyUiState(ValidationUiState.Extracting)
         viewModelScope.launch {
+            val startAt = SystemClock.elapsedRealtime()
+
             val bitmap = loadFullResolutionBitmap(imagePath)
+            val decodedAt = SystemClock.elapsedRealtime()
             if (bitmap == null) {
                 applyUiState(ValidationUiState.Error(ValidationError.ImageUnreadable))
                 return@launch
             }
 
             val elements = recognizeText(bitmap)
+            val ocrAt = SystemClock.elapsedRealtime()
             val result = extractCottageNumbers(elements, imageWidthPx = bitmap.width)
+            val extractedAt = SystemClock.elapsedRealtime()
             val newState =
                 when (result) {
                     is ExtractionResult.Success -> ValidationUiState.Success(result.cottageNumbers)
                     ExtractionResult.HeaderNotFound -> ValidationUiState.Error(ValidationError.HeaderNotFound)
                     ExtractionResult.NoNumbersFound -> ValidationUiState.Error(ValidationError.NoNumbersFound)
                 }
+            val cottageCount = (result as? ExtractionResult.Success)?.cottageNumbers?.size ?: 0
+            Log.i(
+                PERF_TAG,
+                "decode=${decodedAt - startAt}ms ocr=${ocrAt - decodedAt}ms " +
+                    "extract=${extractedAt - ocrAt}ms total=${extractedAt - startAt}ms " +
+                    "cottages=$cottageCount",
+            )
             applyUiState(newState)
             // La tournée naît en base dès que l'OCR réussit (TODO_V1.md 5.3) :
             // à partir d'ici, « Reprendre la tournée en cours » fonctionne,
