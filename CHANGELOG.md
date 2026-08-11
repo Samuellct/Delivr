@@ -1,4 +1,18 @@
 
+## [v0.6.12] - 2026-08-11
+### [0.6.12](https://github.com/Samuellct/Delivr/compare/v0.6.11...v0.6.12) (2026-08-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* clôture la phase de développement V1
+
+### Features
+
+* clôture la phase de développement V1 ([2a8e337](https://github.com/Samuellct/Delivr/commit/2a8e3379e5ce40c92856cd609e7539af8d82f434))
+
+
+
 ## [v0.6.10] - 2026-08-11
 ### [0.6.10](https://github.com/Samuellct/Delivr/compare/v0.6.9...v0.6.10) (2026-08-11)
 
