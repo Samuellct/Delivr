@@ -1,105 +1,110 @@
 # Delivr
 
-Application Android native pour automatiser la préparation des tournées de
-livraison de petits-déjeuners dans un centre de loisirs. L'app scanne la
-feuille de livraison A4 du jour, en extrait les numéros de cottages (colonne
-« Cott ») par OCR, les trie dans l'ordre de la tournée, puis guide l'usager
-cottage par cottage.
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/Samuellct/Delivr" alt="Version">
+  <img src="https://img.shields.io/github/actions/workflow/status/Samuellct/Delivr/ci.yml?branch=main&label=CI" alt="CI">
+  <img src="https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white" alt="Android">
+  <img src="https://img.shields.io/badge/Kotlin-2.2-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin">
+</p>
 
-100 % hors ligne : pas de serveur, pas de cloud, pas de compte.
+Delivr est une application Android native qui automatise la préparation des tournées de livraison
+de petits déjeuners dans un centre de loisirs. Elle scanne la feuille de livraison A4 du jour, en
+extrait les numéros de cottages présents dans la colonne « Cott » par reconnaissance de texte, les
+trie dans l'ordre logique de la tournée, puis guide l'utilisateur cottage par cottage jusqu'à la
+fin.
+
+L'application fonctionne entièrement hors ligne : aucun serveur, aucun cloud, aucun compte n'est
+nécessaire.
+
+## Aperçu
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Écran d'accueil de Delivr" width="260">
+  <img src="docs/screenshots/livraison.png" alt="Mode Livraison de Delivr" width="260">
+</p>
+
+## Fonctionnalités
+
+* Scan d'une feuille de livraison A4, avec détection du document, correction de perspective et
+  amélioration du contraste
+* Extraction automatique des numéros de cottages par reconnaissance de texte hors ligne
+* Suppression des doublons et tri automatique, dans l'ordre croissant ou décroissant au choix
+* Écran de validation permettant d'ajouter, modifier ou supprimer un cottage avant de démarrer
+* Mode Livraison minimaliste : numéro du cottage courant en très grand, position dans la tournée,
+  actions Livré, Annulé et Retour
+* Écran Liste : vue d'ensemble de tous les cottages avec leur statut, et navigation rapide vers
+  n'importe lequel d'entre eux
+* Sauvegarde automatique et continue de la tournée en cours : fermer l'application ne fait perdre
+  aucune donnée, la reprise se fait exactement là où elle a été laissée
 
 ## Stack technique
 
-- Kotlin + Jetpack Compose
-- Architecture MVVM
-- Google ML Kit Document Scanner (capture, détection des bords, redressement
-  de perspective, amélioration du contraste — remplace CameraX, voir
-  `TODO_V1.md` § 1 pour le détail de cette décision)
-- Google ML Kit OCR (reconnaissance de texte, hors ligne)
-- Room 2.8.4, via KSP (sauvegarde locale de la tournée en cours)
-
-## État actuel
-
-Scan (ML Kit Document Scanner) → OCR de la colonne « Cott » (ML Kit Text
-Recognition, hors ligne) → écran de validation éditable (ajout/suppression/
-modification, choix du sens de tournée) → sauvegarde automatique en continu
-dans Room → mode Livraison (numéro de cottage courant + position, icônes
-Livré/Retour/Liste/Annulé, appui long requis pour annuler). « Reprendre la
-tournée en cours » depuis l'accueil ramène directement au cottage courant.
-Seul l'écran Liste (Phase 7) reste à construire (voir
-`app/src/main/java/com/delivr/app/`, dossier `ui/`).
+* Kotlin et Jetpack Compose
+* Architecture MVVM
+* Google ML Kit Document Scanner pour la capture, la détection des bords, le redressement de
+  perspective et l'amélioration du contraste étant gérés directement par le SDK, sans caméra
+  personnalisée
+* Google ML Kit Text Recognition pour l'OCR, entièrement hors ligne
+* Room, via KSP, pour la sauvegarde locale de la tournée en cours
 
 ## Ouvrir le projet
 
 1. Ouvrir le dossier dans Android Studio (Ladybug ou plus récent).
-2. Laisser Gradle synchroniser (le wrapper est déjà configuré, Gradle 8.13
-   / AGP 8.13.2 / Kotlin 2.2.21).
-3. Lancer sur un appareil ou émulateur API 26+.
+2. Laisser Gradle synchroniser (le wrapper est déjà configuré : Gradle 8.13, AGP 8.13.2, Kotlin
+   2.2.21).
+3. Lancer l'application sur un appareil ou un émulateur Android 8.0 (API 26) ou supérieur.
 
-## Structure
+## Structure du projet
 
-```
-app/src/main/java/com/delivr/app/
- ├── DelivrApplication.kt  seul conteneur d'injection du projet (pas de framework)
- ├── ui/            écrans Compose (home, scan, validation, ...) + thème + fabriques de ViewModel
- ├── navigation/     graphe de navigation
- ├── data/           inutilisé en V1 (Room fait office de source de données)
- ├── domain/         logique métier pure (tri, extraction, statuts)
- ├── camera/         lancement du scanner ML Kit (DocumentScanner.kt)
- ├── ocr/            intégration ML Kit Text Recognition
- ├── repository/     RoundRepository (mappe le domaine vers Room)
- ├── database/       Room (AppDatabase, RoundEntity/CottageEntity, RoundDao)
- └── utils/          utilitaires (chargement d'image, BitmapLoader.kt)
-```
+Le code de l'application vit dans `app/src/main/java/com/delivr/app/` :
+
+* `DelivrApplication.kt`, seul conteneur d'injection du projet, sans framework tiers
+* `ui/`, les écrans Compose (accueil, scan, validation, livraison, liste) et leurs ViewModels
+* `navigation/`, le graphe de navigation entre les écrans
+* `domain/`, la logique métier pure (tri, extraction, statuts), sans dépendance Android
+* `camera/`, l'intégration du scanner ML Kit
+* `ocr/`, l'intégration de la reconnaissance de texte ML Kit
+* `repository/`, le pont entre la logique métier et la base de données locale
+* `database/`, la persistance Room (base de données, entités, accès aux données)
+* `utils/`, les utilitaires partagés (chargement d'image, etc.)
 
 ## Workflow Git
 
-Une seule branche (`main`), commits atomiques, une fonctionnalité = un
-commit.
+Une seule branche (`main`), des commits atomiques, une fonctionnalité par commit.
 
 Les messages de commit suivent la convention
-[Conventional Commits](https://www.conventionalcommits.org/) : c'est ce que
-lit le workflow de release pour calculer automatiquement le prochain numéro
-de version.
+[Conventional Commits](https://www.conventionalcommits.org/) : c'est ce que lit le workflow de
+release pour calculer automatiquement le prochain numéro de version.
 
-- `feat: ...` → nouvelle version **mineure** (`0.1.0` → `0.2.0`)
-- `fix: ...` → nouvelle version de **patch** (`0.1.0` → `0.1.1`)
-- `feat!: ...` ou un pied de commit `BREAKING CHANGE: ...` → version
-  **majeure** (`0.1.0` → `1.0.0`)
-- `docs:`, `chore:`, `refactor:`, `test:`, ... pour tout le reste
+* `feat: ...` déclenche une nouvelle version mineure (`0.1.0` devient `0.2.0`)
+* `fix: ...` déclenche une nouvelle version de correctif (`0.1.0` devient `0.1.1`)
+* `feat!: ...`, ou un pied de commit `BREAKING CHANGE: ...`, déclenche une nouvelle version majeure
+  (`0.1.0` devient `1.0.0`)
+* `docs:`, `chore:`, `refactor:`, `test:`, et les autres types couvrent le reste
 
-## Intégration et livraison continues (GitHub Actions)
+## Intégration et livraison continues
 
-Deux workflows tournent sur `.github/workflows/` :
+Deux workflows GitHub Actions accompagnent le projet :
 
-- **`ci.yml`** — à chaque push/PR sur `main` : tests unitaires, lint, build
-  debug. Produit une APK debug téléchargeable en artifact d'Action (30 jours).
-- **`release.yml`** — à chaque push sur `main` : calcule le prochain tag
-  SemVer à partir des Conventional Commits, build une **APK release
-  signée**, publie une GitHub Release avec l'APK attachée et le changelog
-  généré, puis met à jour `CHANGELOG.md`.
+* **CI** : à chaque push ou pull request sur `main`, exécute les tests unitaires, la vérification
+  de style (ktlint) et le lint Android, puis construit une APK de debug téléchargeable en artifact.
+* **Release** : à chaque push sur `main` qui passe les tests, calcule le prochain tag SemVer à
+  partir des Conventional Commits, construit une APK release signée, publie une GitHub Release
+  avec l'APK attachée et le changelog généré automatiquement, puis met à jour `CHANGELOG.md`.
 
 Pour tester une nouvelle version sur un téléphone : ouvrir la dernière
-[GitHub Release](https://github.com/Samuellct/Delivr/releases), télécharger
-l'APK depuis le téléphone, l'installer (elle s'installe par-dessus la
-précédente sans perte de données, même `applicationId`, même clé de
-signature).
+[GitHub Release](https://github.com/Samuellct/Delivr/releases), télécharger l'APK depuis le
+téléphone, puis l'installer. Elle remplace directement la version précédente sans perte de
+données, grâce à un `applicationId` et une clé de signature stables.
 
-## Signature (release)
+## Signature de la release
 
-Le keystore de release (`keystore/delivr-release.jks`) et ses identifiants
-(`keystore.properties`) sont gitignorés — ce sont des secrets, jamais
-commités. `app/build.gradle.kts` résout la configuration de signature dans
-cet ordre :
+Le keystore de release et ses identifiants ne sont jamais commités dans le dépôt : ce sont des
+secrets, résolus dans cet ordre par la configuration Gradle du projet :
 
-1. Variables d'environnement `KEYSTORE_FILE` / `KEYSTORE_PASSWORD` /
-   `KEY_ALIAS` / `KEY_PASSWORD` — utilisées par `release.yml`, qui
-   reconstitue le fichier `.jks` à partir du secret GitHub `KEYSTORE_BASE64`
-   (jamais commité, jamais loggé).
-2. `keystore.properties` en local, pour signer une release depuis un poste
-   de développement.
-3. Sans les deux : le build release reste non signé (le debug fonctionne
-   toujours).
-
-En cas de nouveau poste de travail, copier `keystore/` et
-`keystore.properties` manuellement (jamais par Git).
+1. Variables d'environnement dédiées, utilisées par le workflow de release, qui reconstitue le
+   fichier de signature à partir d'un secret GitHub encodé, jamais commité ni journalisé.
+2. Un fichier de configuration local, pour signer une release directement depuis un poste de
+   développement.
+3. En l'absence des deux : le build release reste simplement non signé (le build debug fonctionne
+   toujours normalement).
