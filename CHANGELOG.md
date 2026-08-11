@@ -1,4 +1,21 @@
 
+## [v1.0.0] - 2026-08-11
+## [1.0.0](https://github.com/Samuellct/Delivr/compare/v0.6.12...v1.0.0) (2026-08-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* clôture la phase de développement V1 (Phase 9 : tests
+réels et TalkBack validés entièrement). Pied volontaire pour déclencher le
+passage en version 1.0.0, conformément à la convention de versionnement du
+projet ; aucun changement de comportement ou d'API n'accompagne ce commit.
+
+### Features
+
+* passe officiellement en version 1.0.0 ([6cf3e16](https://github.com/Samuellct/Delivr/commit/6cf3e160813b50f6a26f0116cd8e905c6b18e5ae))
+
+
+
 ## [v0.6.12] - 2026-08-11
 ### [0.6.12](https://github.com/Samuellct/Delivr/compare/v0.6.11...v0.6.12) (2026-08-11)
 
