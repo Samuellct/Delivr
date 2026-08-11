@@ -41,6 +41,14 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
+      # Sans cette étape, le premier build minifié de chaque version serait
+      # celui publié par release.yml : une règle R8 manquante ne se verrait
+      # qu'en production. Ici la release est construite non signée (aucun
+      # keystore en CI, voir app/build.gradle.kts) — seul le passage de R8
+      # nous intéresse.
+      - name: Build release APK (vérifie R8 / shrinkResources)
+        run: ./gradlew assembleRelease
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
