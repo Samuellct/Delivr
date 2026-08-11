@@ -1,4 +1,14 @@
 
+## [v0.6.10] - 2026-08-11
+### [0.6.10](https://github.com/Samuellct/Delivr/compare/v0.6.9...v0.6.10) (2026-08-11)
+
+
+### Documentation
+
+* réécrit le README pour la sortie de la V1 ([dd90108](https://github.com/Samuellct/Delivr/commit/dd901082a85fbf6a0f6c8d51a66569f9d9ad179a))
+
+
+
 ## [v0.6.9] - 2026-08-11
 ### [0.6.9](https://github.com/Samuellct/Delivr/compare/v0.6.8...v0.6.9) (2026-08-11)
 
