@@ -83,9 +83,14 @@ class ScanScreenTest {
     @Test
     fun etat_cancelled_affiche_le_message_localise_et_relance_le_scan() {
         val viewModel = ScanViewModel(SavedStateHandle())
+        // L'état doit être Cancelled AVANT la composition : sinon uiState vaut
+        // encore Idle au moment où ScanScreen compose, et son LaunchedEffect(Unit)
+        // déclenche un premier startScan() automatique (comportement voulu, voir
+        // ScanScreen.kt) avant même que ce test ne force l'annulation — ce qui
+        // faussait le compteur ci-dessous.
+        viewModel.onScanOutcome(ScanOutcome.Cancelled)
         var startScanCallCount = 0
         setScanScreen(viewModel, startScan = { startScanCallCount++ })
-        viewModel.onScanOutcome(ScanOutcome.Cancelled)
 
         val context = composeTestRule.activity
         composeTestRule.onNodeWithText(context.getString(R.string.scan_cancelled_title)).assertExists()
