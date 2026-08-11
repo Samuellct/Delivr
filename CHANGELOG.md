@@ -1,4 +1,14 @@
 
+## [v0.6.8] - 2026-08-11
+### [0.6.8](https://github.com/Samuellct/Delivr/compare/v0.6.7...v0.6.8) (2026-08-11)
+
+
+### Build Systems
+
+* active R8 et le retrait des ressources inutilisées en release ([67f6b69](https://github.com/Samuellct/Delivr/commit/67f6b691dc84faacba646342fc31cec753d7995d))
+
+
+
 ## [v0.6.7] - 2026-08-10
 ### [0.6.7](https://github.com/Samuellct/Delivr/compare/v0.6.6...v0.6.7) (2026-08-10)
 
