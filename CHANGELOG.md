@@ -1,4 +1,14 @@
 
+## [v1.0.1] - 2026-08-11
+### [1.0.1](https://github.com/Samuellct/Delivr/compare/v1.0.0...v1.0.1) (2026-08-11)
+
+
+### Documentation
+
+* corrige la doc du bump majeur dans le README ([ef870c2](https://github.com/Samuellct/Delivr/commit/ef870c2f13d6bf68210b2be6368d403e0657ea08))
+
+
+
 ## [v1.0.0] - 2026-08-11
 ## [1.0.0](https://github.com/Samuellct/Delivr/compare/v0.6.12...v1.0.0) (2026-08-11)
 
