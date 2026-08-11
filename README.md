@@ -78,8 +78,10 @@ release pour calculer automatiquement le prochain numéro de version.
 
 * `feat: ...` déclenche une nouvelle version mineure (`0.1.0` devient `0.2.0`)
 * `fix: ...` déclenche une nouvelle version de correctif (`0.1.0` devient `0.1.1`)
-* `feat!: ...`, ou un pied de commit `BREAKING CHANGE: ...`, déclenche une nouvelle version majeure
-  (`0.1.0` devient `1.0.0`)
+* un pied de commit `BREAKING CHANGE: ...` déclenche une nouvelle version majeure (`0.1.0` devient
+  `1.0.0`). Le seul `!` accolé au type dans l'intitulé (`feat!: ...`) ne suffit pas : le calcul de
+  version de ce workflow s'appuie sur le préréglage Angular, qui exige le pied de commit explicite
+  pour reconnaître un changement majeur
 * `docs:`, `chore:`, `refactor:`, `test:`, et les autres types couvrent le reste
 
 ## Intégration et livraison continues
