@@ -1,4 +1,14 @@
 
+## [v0.6.9] - 2026-08-11
+### [0.6.9](https://github.com/Samuellct/Delivr/compare/v0.6.8...v0.6.9) (2026-08-11)
+
+
+### Bug Fixes
+
+* **test:** corrige l'ordre de composition dans le test de relance après annulation ([6fb2386](https://github.com/Samuellct/Delivr/commit/6fb238689609b7f42ebed597a7bda7aeef558352))
+
+
+
 ## [v0.6.8] - 2026-08-11
 ### [0.6.8](https://github.com/Samuellct/Delivr/compare/v0.6.7...v0.6.8) (2026-08-11)
 
