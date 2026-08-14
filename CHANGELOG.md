@@ -1,4 +1,14 @@
 
+## [v1.0.2] - 2026-08-14
+### [1.0.2](https://github.com/Samuellct/Delivr/compare/v1.0.1...v1.0.2) (2026-08-14)
+
+
+### Tests
+
+* **ocr:** mesure le taux de détection réel sur les 4 photos de feuilles ([ad7865e](https://github.com/Samuellct/Delivr/commit/ad7865e3c8d267c369bbcfc8dda33464e8d1bf53))
+
+
+
 ## [v1.0.1] - 2026-08-11
 ### [1.0.1](https://github.com/Samuellct/Delivr/compare/v1.0.0...v1.0.1) (2026-08-11)
 
